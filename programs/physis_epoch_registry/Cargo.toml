@@ -1,0 +1,25 @@
+[package]
+name = "physis_epoch_registry"
+version = "0.1.0"
+description = "Orrery: Physis Epoch Registry"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "physis_epoch_registry"
+
+[features]
+default = []
+cpi = ["no-entrypoint"]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+idl-build = ["anchor-lang/idl-build"]
+
+# Declared to satisfy Rust check-cfg warnings emitted through Anchor/Solana macros.
+anchor-debug = []
+custom-heap = []
+custom-panic = []
+
+[dependencies]
+anchor-lang = { workspace = true }
