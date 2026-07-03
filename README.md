@@ -32,8 +32,8 @@ PRIVÉ-gated community participation
 Council stewardship rewards
 PHYPRIL annual cycle
 ASTRALIS service epochs
-future SmartSpot / operator rewards
-future circuit-breaker protections
+SmartSpot / operator rewards
+Circuit-breaker protections
 ```
 
 ---
