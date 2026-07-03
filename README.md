@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="./assets/orrery.png" alt="Physis Orrery" width="720" />
+</p>
+
 # Physis Orrery
 
 **Orrery** is the on-chain program suite for Physis DAO governance, epoch timing, rewards infrastructure, and future ASTRALIS network coordination.
