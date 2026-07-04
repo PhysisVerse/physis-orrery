@@ -15,4 +15,3 @@ target/deploy/*.json
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
-.yarn/install-state.gz
