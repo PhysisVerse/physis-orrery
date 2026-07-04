@@ -8,3 +8,10 @@ node_modules/
 # Solana / Anchor keypairs
 target/deploy/*.json
 *.keypair.json
+
+# Yarn / package manager
+.yarn/cache/
+.yarn/unplugged/
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*

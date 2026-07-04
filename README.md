@@ -4,7 +4,7 @@
 
 # Physis Orrery
 
-**Orrery** is the on-chain program suite for Physis DAO governance, epoch timing, rewards infrastructure, and future ASTRALIS network coordination.
+**Orrery** is the on-chain program suite for Physis DAO governance, epoch timing, rewards infrastructure, and ASTRALIS network coordination.
 
 The name reflects the role of this repository: a coordinated system of protocol “bodies” moving through governed cycles — epochs, locks, rewards, eligibility, and future node/service rotations.
 
@@ -314,8 +314,6 @@ for:
 ```text
 physis_epoch_registry
 ```
-
-Until the final vanity keypair is generated, local development may use a temporary program ID.
 
 Do not commit program keypairs.
 

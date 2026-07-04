@@ -1,0 +1,11 @@
+export const PHYSIS_YEAR_START_MONTH = 4;
+export const PHYSIS_YEAR_START_DAY = 1;
+
+export const ASTRALIS_EPOCH_ZERO_TS = 1_725_148_800; // 2024-09-01T00:00:00Z
+export const ASTRALIS_EPOCH_DURATION_SECONDS = 21_600; // 6 hours
+
+export const EPOCH_STATUS_PENDING = 0;
+export const EPOCH_STATUS_ACTIVE = 1;
+export const EPOCH_STATUS_CLOSED = 2;
+
+export const PROGRAM_ID = "PHYcBRWd6mKATk3xo8oYi3d55BBHUc7kAN4kK91cJoE";

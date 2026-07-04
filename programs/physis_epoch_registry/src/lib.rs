@@ -9,7 +9,7 @@ pub mod utils;
 
 pub use instructions::*;
 
-declare_id!("47iF7ZDLAKfqV8fADX3vXShbyepcPeBSP8YeEHaHJWAY");
+declare_id!("PHYcBRWd6mKATk3xo8oYi3d55BBHUc7kAN4kK91cJoE");
 
 #[program]
 pub mod physis_epoch_registry {
