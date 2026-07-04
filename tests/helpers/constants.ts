@@ -7,5 +7,6 @@ export const ASTRALIS_EPOCH_DURATION_SECONDS = 21_600; // 6 hours
 export const EPOCH_STATUS_PENDING = 0;
 export const EPOCH_STATUS_ACTIVE = 1;
 export const EPOCH_STATUS_CLOSED = 2;
+export const EPOCH_STATUS_CANCELLED = 3;
 
 export const PROGRAM_ID = "PHYcBRWd6mKATk3xo8oYi3d55BBHUc7kAN4kK91cJoE";
