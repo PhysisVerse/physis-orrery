@@ -1,9 +1,6 @@
 import * as anchor from "@anchor-lang/core";
 import { Program } from "@anchor-lang/core";
-import {
-  PublicKey,
-  SystemProgram,
-} from "@solana/web3.js";
+import { PublicKey } from "@solana/web3.js";
 import fs from "fs";
 import path from "path";
 
@@ -11,10 +8,6 @@ type LocalnetConfig = {
   cluster: string;
   programId: string;
   realm: string;
-  physisYearStartMonth: number;
-  physisYearStartDay: number;
-  astralisEpochZeroTs: number;
-  astralisEpochDurationSeconds: number;
 };
 
 function loadConfig(): LocalnetConfig {
@@ -35,6 +28,51 @@ function findRegistryPda(programId: PublicKey, realm: PublicKey): PublicKey {
   return pda;
 }
 
+function findEpochPda(
+  programId: PublicKey,
+  registry: PublicKey,
+  epochId: number,
+): PublicKey {
+  const epochIdBuffer = Buffer.alloc(4);
+  epochIdBuffer.writeUInt32LE(epochId, 0);
+
+  const [pda] = PublicKey.findProgramAddressSync(
+	[
+	  Buffer.from("physis"),
+	  Buffer.from("epoch"),
+	  registry.toBuffer(),
+	  epochIdBuffer,
+	],
+	programId,
+  );
+
+  return pda;
+}
+
+function getCurrentPhysisEpochId(now = new Date()): number {
+  const calendarYear = now.getUTCFullYear();
+  const utcMonth = now.getUTCMonth();
+
+  let physisYear: number;
+  let physisQuarter: number;
+
+  if (utcMonth >= 3 && utcMonth <= 5) {
+	physisYear = calendarYear;
+	physisQuarter = 1;
+  } else if (utcMonth >= 6 && utcMonth <= 8) {
+	physisYear = calendarYear;
+	physisQuarter = 2;
+  } else if (utcMonth >= 9 && utcMonth <= 11) {
+	physisYear = calendarYear;
+	physisQuarter = 3;
+  } else {
+	physisYear = calendarYear - 1;
+	physisQuarter = 4;
+  }
+
+  return physisYear * 100 + physisQuarter;
+}
+
 async function main(): Promise<void> {
   const config = loadConfig();
 
@@ -51,42 +89,33 @@ async function main(): Promise<void> {
 
   const realm = new PublicKey(config.realm);
   const registry = findRegistryPda(program.programId, realm);
+  const epochId = getCurrentPhysisEpochId();
+  const epoch = findEpochPda(program.programId, registry, epochId);
 
-  console.log("Orrery: initialize Physis Epoch Registry");
+  console.log("Orrery: activate current Physis epoch");
   console.log("Cluster:", config.cluster);
   console.log("Program:", program.programId.toBase58());
-  console.log("Realm:", realm.toBase58());
   console.log("Registry PDA:", registry.toBase58());
-  console.log("Authority:", provider.wallet.publicKey.toBase58());
+  console.log("Epoch ID:", epochId);
+  console.log("Epoch PDA:", epoch.toBase58());
 
-  try {
-	const existing = await program.account.epochRegistry.fetch(registry);
+  const epochAccount = await program.account.physisEpoch.fetch(epoch);
 
-	console.log("Registry already initialized.");
-	console.log("Authority:", existing.authority.toBase58());
-	console.log("Paused:", existing.paused);
+  if (epochAccount.status === 1) {
+	console.log("Epoch is already active.");
 	return;
-  } catch {
-	// Expected when registry does not exist yet.
   }
 
   const signature = await program.methods
-	.initializeRegistry(
-	  config.physisYearStartMonth,
-	  config.physisYearStartDay,
-	  new anchor.BN(config.astralisEpochZeroTs),
-	  new anchor.BN(config.astralisEpochDurationSeconds),
-	)
+	.activateEpoch()
 	.accounts({
-	  payer: provider.wallet.publicKey,
 	  authority: provider.wallet.publicKey,
-	  realm,
 	  registry,
-	  systemProgram: SystemProgram.programId,
+	  epoch,
 	})
 	.rpc();
 
-  console.log("Registry initialized.");
+  console.log("Epoch activated.");
   console.log("Signature:", signature);
 }
 
