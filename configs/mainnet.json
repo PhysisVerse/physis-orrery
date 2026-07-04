@@ -1,0 +1,16 @@
+{
+  "cluster": "mainnet-beta",
+  "programId": "PHYcBRWd6mKATk3xo8oYi3d55BBHUc7kAN4kK91cJoE",
+  "realm": "DsWWtZrqXBcqTTPoEyFH793Euq82r95CuXWTwqo3JZur",
+  "realmAuthority": "29epeLvAMyRXtpA1HaoKB1hGcAnrc1NvMCbaZ8AVRwEi",
+  "programAuthority": "6ZuPrCK472jw3ZjRBqa6PZQ1tyVvY5BuYfWS7GMq7hX8",
+  "registryAuthority": "6ZuPrCK472jw3ZjRBqa6PZQ1tyVvY5BuYfWS7GMq7hX8",
+  "ownerProgram": "GovER5Lthms3bLBqWub97yVrMmEogzX7xNjdXpPPCVZw",
+  "multiSigMint": "7XenHd1YS1ae6BzUwEnDWiX1E3KR9aje5HcGdVJD4gPp",
+  "phyMint": "EswgBj2hZKdgovX2ihWSUDnuBg9VNbGmSGoH5yjNsPRa",
+  "astralisMint": "ASTRALvKjGK2xk2pamjMBU5dav5cEQa6zpKCP6FZ7BAJ",
+  "physisYearStartMonth": 4,
+  "physisYearStartDay": 1,
+  "astralisEpochZeroTs": 1725148800,
+  "astralisEpochDurationSeconds": 21600
+}
