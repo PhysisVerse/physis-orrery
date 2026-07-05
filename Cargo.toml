@@ -8,7 +8,7 @@ resolver = "2"
 anchor-lang = "1.1.2"
 
 [workspace.metadata.cli]
-solana = "4.1.1"
+solana = "4.0.0"
 
 [profile.release]
 overflow-checks = true
