@@ -7,6 +7,9 @@ resolver = "2"
 [workspace.dependencies]
 anchor-lang = "1.1.2"
 
+[workspace.metadata.cli]
+solana = "4.1.1"
+
 [profile.release]
 overflow-checks = true
 lto = "fat"
