@@ -1,0 +1,18 @@
+{
+  "name": "Physis Orrery - Epoch Registry",
+  "logo": "https://cdn.jsdelivr.net/gh/PhysisVerse/physis-orrery@main/assets/orrery-icon.png",
+  "description": "Canonical Physis epoch clock and ASTRALIS service epoch anchor for the Physis DAO.",
+  "project_url": "https://github.com/PhysisVerse/physis-orrery",
+  "contacts": [
+    "email:care@phys.is"
+  ],
+  "policy": "https://github.com/PhysisVerse/physis-orrery/security/policy",
+  "source_code": "https://github.com/PhysisVerse/physis-orrery",
+  "preferred_languages": [
+    "en"
+  ],
+  "auditors": [
+    "None"
+  ],
+  "acknowledgements": "https://github.com/PhysisVerse/physis-orrery/security/advisories"
+}
