@@ -1,4 +1,17 @@
 use anchor_lang::prelude::*;
+use solana_security_txt::security_txt;
+
+security_txt! {
+    name: "Physis Orrery - Epoch Registry",
+    project_url: "https://github.com/PhysisVerse/physis-orrery",
+    contacts: "email:care@phys.is",
+    policy: "https://github.com/PhysisVerse/physis-orrery/security/policy",
+    preferred_languages: "en",
+    source_code: "https://github.com/PhysisVerse/physis-orrery",
+    encryption: "",
+    auditors: "None",
+    acknowledgements: "https://github.com/PhysisVerse/physis-orrery/security/advisories"
+}
 
 pub mod constants;
 pub mod errors;
