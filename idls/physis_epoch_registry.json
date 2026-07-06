@@ -1,0 +1,1100 @@
+{
+  "address": "PHYcBRWd6mKATk3xo8oYi3d55BBHUc7kAN4kK91cJoE",
+  "metadata": {
+    "name": "physis_epoch_registry",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Orrery: Physis Epoch Registry"
+  },
+  "instructions": [
+    {
+      "name": "activate_epoch",
+      "discriminator": [
+        174,
+        221,
+        4,
+        21,
+        20,
+        159,
+        175,
+        138
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "signer": true
+        },
+        {
+          "name": "registry",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  104,
+                  121,
+                  115,
+                  105,
+                  115
+                ]
+              },
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  112,
+                  111,
+                  99,
+                  104,
+                  45,
+                  114,
+                  101,
+                  103,
+                  105,
+                  115,
+                  116,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "registry.realm",
+                "account": "EpochRegistry"
+              }
+            ]
+          }
+        },
+        {
+          "name": "epoch",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  104,
+                  121,
+                  115,
+                  105,
+                  115
+                ]
+              },
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  112,
+                  111,
+                  99,
+                  104
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "registry"
+              },
+              {
+                "kind": "account",
+                "path": "epoch.epoch_id",
+                "account": "PhysisEpoch"
+              }
+            ]
+          }
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "close_epoch",
+      "discriminator": [
+        13,
+        87,
+        7,
+        133,
+        109,
+        14,
+        83,
+        25
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "signer": true
+        },
+        {
+          "name": "registry",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  104,
+                  121,
+                  115,
+                  105,
+                  115
+                ]
+              },
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  112,
+                  111,
+                  99,
+                  104,
+                  45,
+                  114,
+                  101,
+                  103,
+                  105,
+                  115,
+                  116,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "registry.realm",
+                "account": "EpochRegistry"
+              }
+            ]
+          }
+        },
+        {
+          "name": "epoch",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  104,
+                  121,
+                  115,
+                  105,
+                  115
+                ]
+              },
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  112,
+                  111,
+                  99,
+                  104
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "registry"
+              },
+              {
+                "kind": "account",
+                "path": "epoch.epoch_id",
+                "account": "PhysisEpoch"
+              }
+            ]
+          }
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "initialize_registry",
+      "discriminator": [
+        189,
+        181,
+        20,
+        17,
+        174,
+        57,
+        249,
+        59
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "authority",
+          "signer": true
+        },
+        {
+          "name": "realm"
+        },
+        {
+          "name": "registry",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  104,
+                  121,
+                  115,
+                  105,
+                  115
+                ]
+              },
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  112,
+                  111,
+                  99,
+                  104,
+                  45,
+                  114,
+                  101,
+                  103,
+                  105,
+                  115,
+                  116,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "realm"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "physis_year_start_month",
+          "type": "u8"
+        },
+        {
+          "name": "physis_year_start_day",
+          "type": "u8"
+        },
+        {
+          "name": "astralis_epoch_zero_ts",
+          "type": "i64"
+        },
+        {
+          "name": "astralis_epoch_duration_seconds",
+          "type": "i64"
+        }
+      ]
+    },
+    {
+      "name": "pause_registry",
+      "discriminator": [
+        106,
+        147,
+        106,
+        131,
+        69,
+        218,
+        76,
+        249
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "signer": true
+        },
+        {
+          "name": "registry",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  104,
+                  121,
+                  115,
+                  105,
+                  115
+                ]
+              },
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  112,
+                  111,
+                  99,
+                  104,
+                  45,
+                  114,
+                  101,
+                  103,
+                  105,
+                  115,
+                  116,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "registry.realm",
+                "account": "EpochRegistry"
+              }
+            ]
+          }
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "register_epoch",
+      "discriminator": [
+        106,
+        91,
+        145,
+        117,
+        116,
+        61,
+        155,
+        111
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "authority",
+          "signer": true
+        },
+        {
+          "name": "registry",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  104,
+                  121,
+                  115,
+                  105,
+                  115
+                ]
+              },
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  112,
+                  111,
+                  99,
+                  104,
+                  45,
+                  114,
+                  101,
+                  103,
+                  105,
+                  115,
+                  116,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "registry.realm",
+                "account": "EpochRegistry"
+              }
+            ]
+          }
+        },
+        {
+          "name": "epoch",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  104,
+                  121,
+                  115,
+                  105,
+                  115
+                ]
+              },
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  112,
+                  111,
+                  99,
+                  104
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "registry"
+              },
+              {
+                "kind": "arg",
+                "path": "epoch_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "epoch_id",
+          "type": "u32"
+        },
+        {
+          "name": "calendar_year",
+          "type": "u16"
+        },
+        {
+          "name": "calendar_quarter",
+          "type": "u8"
+        },
+        {
+          "name": "physis_year",
+          "type": "u16"
+        },
+        {
+          "name": "physis_quarter",
+          "type": "u8"
+        },
+        {
+          "name": "label",
+          "type": {
+            "array": [
+              "u8",
+              16
+            ]
+          }
+        },
+        {
+          "name": "start_ts",
+          "type": "i64"
+        },
+        {
+          "name": "end_ts",
+          "type": "i64"
+        }
+      ]
+    },
+    {
+      "name": "resume_registry",
+      "discriminator": [
+        214,
+        222,
+        128,
+        181,
+        158,
+        27,
+        118,
+        208
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "signer": true
+        },
+        {
+          "name": "registry",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  104,
+                  121,
+                  115,
+                  105,
+                  115
+                ]
+              },
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  112,
+                  111,
+                  99,
+                  104,
+                  45,
+                  114,
+                  101,
+                  103,
+                  105,
+                  115,
+                  116,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "registry.realm",
+                "account": "EpochRegistry"
+              }
+            ]
+          }
+        }
+      ],
+      "args": []
+    }
+  ],
+  "accounts": [
+    {
+      "name": "EpochRegistry",
+      "discriminator": [
+        110,
+        195,
+        188,
+        135,
+        201,
+        96,
+        31,
+        9
+      ]
+    },
+    {
+      "name": "PhysisEpoch",
+      "discriminator": [
+        247,
+        10,
+        221,
+        83,
+        71,
+        102,
+        222,
+        121
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "EpochActivated",
+      "discriminator": [
+        12,
+        247,
+        190,
+        39,
+        196,
+        178,
+        156,
+        85
+      ]
+    },
+    {
+      "name": "EpochClosed",
+      "discriminator": [
+        21,
+        4,
+        48,
+        56,
+        29,
+        169,
+        77,
+        42
+      ]
+    },
+    {
+      "name": "EpochRegistered",
+      "discriminator": [
+        64,
+        118,
+        9,
+        23,
+        213,
+        145,
+        105,
+        196
+      ]
+    },
+    {
+      "name": "RegistryInitialized",
+      "discriminator": [
+        144,
+        138,
+        62,
+        105,
+        58,
+        38,
+        100,
+        177
+      ]
+    },
+    {
+      "name": "RegistryPaused",
+      "discriminator": [
+        187,
+        60,
+        205,
+        238,
+        36,
+        219,
+        148,
+        187
+      ]
+    },
+    {
+      "name": "RegistryResumed",
+      "discriminator": [
+        230,
+        212,
+        119,
+        17,
+        235,
+        202,
+        104,
+        244
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "InvalidAuthority",
+      "msg": "Invalid authority"
+    },
+    {
+      "code": 6001,
+      "name": "RegistryPaused",
+      "msg": "Registry is paused"
+    },
+    {
+      "code": 6002,
+      "name": "RegistryNotPaused",
+      "msg": "Registry is not paused"
+    },
+    {
+      "code": 6003,
+      "name": "InvalidPhysisYearStart",
+      "msg": "Invalid Physis year start"
+    },
+    {
+      "code": 6004,
+      "name": "InvalidAstralisEpochConfig",
+      "msg": "Invalid ASTRALIS epoch configuration"
+    },
+    {
+      "code": 6005,
+      "name": "InvalidEpochId",
+      "msg": "Invalid epoch id"
+    },
+    {
+      "code": 6006,
+      "name": "InvalidCalendarQuarter",
+      "msg": "Invalid calendar quarter"
+    },
+    {
+      "code": 6007,
+      "name": "InvalidPhysisQuarter",
+      "msg": "Invalid Physis quarter"
+    },
+    {
+      "code": 6008,
+      "name": "InvalidEpochTimestamps",
+      "msg": "Invalid epoch timestamps"
+    },
+    {
+      "code": 6009,
+      "name": "EpochNotPending",
+      "msg": "Epoch is not pending"
+    },
+    {
+      "code": 6010,
+      "name": "EpochNotActive",
+      "msg": "Epoch is not active"
+    },
+    {
+      "code": 6011,
+      "name": "EpochHasNotStarted",
+      "msg": "Epoch has not started"
+    },
+    {
+      "code": 6012,
+      "name": "EpochHasNotEnded",
+      "msg": "Epoch has not ended"
+    },
+    {
+      "code": 6013,
+      "name": "ActiveEpochAlreadySet",
+      "msg": "Another epoch is already active"
+    },
+    {
+      "code": 6014,
+      "name": "EpochIsNotCurrent",
+      "msg": "Epoch does not match current active epoch"
+    },
+    {
+      "code": 6015,
+      "name": "MathOverflow",
+      "msg": "Math overflow"
+    }
+  ],
+  "types": [
+    {
+      "name": "EpochActivated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "registry",
+            "type": "pubkey"
+          },
+          {
+            "name": "epoch",
+            "type": "pubkey"
+          },
+          {
+            "name": "epoch_id",
+            "type": "u32"
+          },
+          {
+            "name": "activated_at_ts",
+            "type": "i64"
+          },
+          {
+            "name": "activated_at_slot",
+            "type": "u64"
+          },
+          {
+            "name": "activated_at_solana_epoch",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "EpochClosed",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "registry",
+            "type": "pubkey"
+          },
+          {
+            "name": "epoch",
+            "type": "pubkey"
+          },
+          {
+            "name": "epoch_id",
+            "type": "u32"
+          },
+          {
+            "name": "closed_at_ts",
+            "type": "i64"
+          },
+          {
+            "name": "closed_at_slot",
+            "type": "u64"
+          },
+          {
+            "name": "closed_at_solana_epoch",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "EpochRegistered",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "registry",
+            "type": "pubkey"
+          },
+          {
+            "name": "epoch",
+            "type": "pubkey"
+          },
+          {
+            "name": "epoch_id",
+            "type": "u32"
+          },
+          {
+            "name": "physis_year",
+            "type": "u16"
+          },
+          {
+            "name": "physis_quarter",
+            "type": "u8"
+          },
+          {
+            "name": "start_ts",
+            "type": "i64"
+          },
+          {
+            "name": "end_ts",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "EpochRegistry",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "version",
+            "type": "u8"
+          },
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "realm",
+            "type": "pubkey"
+          },
+          {
+            "name": "physis_year_start_month",
+            "type": "u8"
+          },
+          {
+            "name": "physis_year_start_day",
+            "type": "u8"
+          },
+          {
+            "name": "astralis_epoch_zero_ts",
+            "type": "i64"
+          },
+          {
+            "name": "astralis_epoch_duration_seconds",
+            "type": "i64"
+          },
+          {
+            "name": "current_epoch",
+            "type": {
+              "option": "pubkey"
+            }
+          },
+          {
+            "name": "latest_closed_epoch",
+            "type": {
+              "option": "pubkey"
+            }
+          },
+          {
+            "name": "paused",
+            "type": "bool"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "reserved",
+            "type": {
+              "array": [
+                "u8",
+                64
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "PhysisEpoch",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "version",
+            "type": "u8"
+          },
+          {
+            "name": "registry",
+            "type": "pubkey"
+          },
+          {
+            "name": "epoch_id",
+            "type": "u32"
+          },
+          {
+            "name": "calendar_year",
+            "type": "u16"
+          },
+          {
+            "name": "calendar_quarter",
+            "type": "u8"
+          },
+          {
+            "name": "physis_year",
+            "type": "u16"
+          },
+          {
+            "name": "physis_quarter",
+            "type": "u8"
+          },
+          {
+            "name": "label",
+            "type": {
+              "array": [
+                "u8",
+                16
+              ]
+            }
+          },
+          {
+            "name": "start_ts",
+            "type": "i64"
+          },
+          {
+            "name": "end_ts",
+            "type": "i64"
+          },
+          {
+            "name": "status",
+            "type": "u8"
+          },
+          {
+            "name": "registered_at_ts",
+            "type": "i64"
+          },
+          {
+            "name": "registered_at_slot",
+            "type": "u64"
+          },
+          {
+            "name": "registered_at_solana_epoch",
+            "type": "u64"
+          },
+          {
+            "name": "activated_at_ts",
+            "type": "i64"
+          },
+          {
+            "name": "activated_at_slot",
+            "type": "u64"
+          },
+          {
+            "name": "activated_at_solana_epoch",
+            "type": "u64"
+          },
+          {
+            "name": "closed_at_ts",
+            "type": "i64"
+          },
+          {
+            "name": "closed_at_slot",
+            "type": "u64"
+          },
+          {
+            "name": "closed_at_solana_epoch",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "reserved",
+            "type": {
+              "array": [
+                "u8",
+                64
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "RegistryInitialized",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "registry",
+            "type": "pubkey"
+          },
+          {
+            "name": "realm",
+            "type": "pubkey"
+          },
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "astralis_epoch_zero_ts",
+            "type": "i64"
+          },
+          {
+            "name": "astralis_epoch_duration_seconds",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RegistryPaused",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "registry",
+            "type": "pubkey"
+          },
+          {
+            "name": "authority",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RegistryResumed",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "registry",
+            "type": "pubkey"
+          },
+          {
+            "name": "authority",
+            "type": "pubkey"
+          }
+        ]
+      }
+    }
+  ]
+}
