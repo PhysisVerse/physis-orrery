@@ -6,7 +6,7 @@
 
 **Orrery** is the on-chain program suite for Physis DAO governance, epoch timing, rewards infrastructure, and ASTRALIS network coordination.
 
-The name reflects the role of this repository: a coordinated system of protocol “bodies” moving through governed cycles — epochs, locks, rewards, eligibility, and future node/service rotations.
+The name reflects the role of this repository: a coordinated system of protocol “bodies” moving through governed cycles — epochs, locks, rewards, eligibility, reward distributions, and future node/service rotations.
 
 ---
 
@@ -18,7 +18,7 @@ The first program is:
 
 ```text
 physis_epoch_registry
-```
+````
 
 It defines the canonical Physis epoch clock used by future governance, rewards, and network programs.
 
@@ -44,7 +44,61 @@ Current status:
 
 ```text
 Program 1: Physis Epoch Registry
-Status: Initial implementation / local build phase
+Status: Mainnet deployed, verified, metadata uploaded, DAO handoff pending
+```
+
+Mainnet program:
+
+```text
+PHYcBRWd6mKATk3xo8oYi3d55BBHUc7kAN4kK91cJoE
+```
+
+Verified build status:
+
+```text
+Verified
+```
+
+Verified hash:
+
+```text
+7d19d0556c0f081c7641a164a08c30f3991f8f7400eb8c2709ce5291a3fa46a8
+```
+
+Verification job:
+
+```text
+25cf187c-a3ad-499d-aeeb-ded0d6e1d4d7
+```
+
+Verified source commit:
+
+```text
+17f0fcb35601c8fc0537d952d5a5f224a8bd1310
+```
+
+Verification status:
+
+```text
+https://verify.osec.io/status/PHYcBRWd6mKATk3xo8oYi3d55BBHUc7kAN4kK91cJoE
+```
+
+Current mainnet upgrade authority:
+
+```text
+wfSXjyiLAv2mmCyPBhgT5ZNaPtAenNjQ6jaanQpdJJm
+```
+
+DAO authority target:
+
+```text
+6ZuPrCK472jw3ZjRBqa6PZQ1tyVvY5BuYfWS7GMq7hX8
+```
+
+Mainnet registry initialization:
+
+```text
+Pending DAO / Realms execution
 ```
 
 Not yet implemented:
@@ -64,6 +118,18 @@ Circuit Breaker Program
 ```text
 Physis Realm:
 DsWWtZrqXBcqTTPoEyFH793Euq82r95CuXWTwqo3JZur
+
+Realm Authority / Main-Council Governance Row:
+29epeLvAMyRXtpA1HaoKB1hGcAnrc1NvMCbaZ8AVRwEi
+
+SPL Governance Program:
+GovER5Lthms3bLBqWub97yVrMmEogzX7xNjdXpPPCVZw
+
+Council Mint:
+7XenHd1YS1ae6BzUwEnDWiX1E3KR9aje5HcGdVJD4gPp
+
+Confirmed Orrery Program Authority Target:
+6ZuPrCK472jw3ZjRBqa6PZQ1tyVvY5BuYfWS7GMq7hX8
 
 PHY Mint:
 EswgBj2hZKdgovX2ihWSUDnuBg9VNbGmSGoH5yjNsPRa
@@ -126,7 +192,7 @@ The intended program development order is:
 8. Dedicated Circuit Breaker Program
 ```
 
-The first deployment target is:
+The first deployed program is:
 
 ```text
 physis_epoch_registry
@@ -140,6 +206,12 @@ Program directory:
 
 ```text
 programs/physis_epoch_registry
+```
+
+Program ID:
+
+```text
+PHYcBRWd6mKATk3xo8oYi3d55BBHUc7kAN4kK91cJoE
 ```
 
 Purpose:
@@ -178,6 +250,90 @@ Those are separate future programs/modules.
 
 ---
 
+## Mainnet State
+
+Mainnet program:
+
+```text
+PHYcBRWd6mKATk3xo8oYi3d55BBHUc7kAN4kK91cJoE
+```
+
+ProgramData address:
+
+```text
+9qXAL9PRc9TuNW8Lk9CWyAaXHsga8gGcPZiwT4tuXUSU
+```
+
+Current upgrade authority:
+
+```text
+wfSXjyiLAv2mmCyPBhgT5ZNaPtAenNjQ6jaanQpdJJm
+```
+
+Target upgrade authority:
+
+```text
+6ZuPrCK472jw3ZjRBqa6PZQ1tyVvY5BuYfWS7GMq7hX8
+```
+
+Mainnet registry status:
+
+```text
+Not initialized yet
+```
+
+Mainnet registry authority target:
+
+```text
+6ZuPrCK472jw3ZjRBqa6PZQ1tyVvY5BuYfWS7GMq7hX8
+```
+
+Mainnet registry initialization should be executed through Realms, not from a developer wallet.
+
+---
+
+## Devnet State
+
+Program ID:
+
+```text
+PHYcBRWd6mKATk3xo8oYi3d55BBHUc7kAN4kK91cJoE
+```
+
+Registry PDA:
+
+```text
+EeNBPkMCnahfjvc44qjFpSgxDyJrHZv9ASSX5fSm9crm
+```
+
+Current Epoch PDA:
+
+```text
+3gfc4aBN4goAfZj4eWKmCA9ukp4ECyw2Z93xDmXL1T4i
+```
+
+Current Epoch ID:
+
+```text
+202602
+```
+
+Status:
+
+```text
+1 = Active
+```
+
+Current Devnet Authority:
+
+```text
+wfSXjyiLAv2mmCyPBhgT5ZNaPtAenNjQ6jaanQpdJJm
+```
+
+Devnet authority is a developer wallet for testing only.
+
+---
+
 ## Time Model
 
 Orrery uses **Unix seconds** as canonical on-chain time.
@@ -208,7 +364,7 @@ const jsMilliseconds = unixSeconds * 1000;
 
 ## Epoch Types
 
-Orrery distinguishes between two epoch systems:
+Orrery distinguishes between two epoch systems.
 
 ### Physis Epoch
 
@@ -260,16 +416,130 @@ Physis Realm / Realms Governance
 
 No founder wallet or individual keypair should permanently control production program authority.
 
-For local development, temporary developer keypairs may be used.
-
-Production authority items to finalize before mainnet:
+Current deployment state:
 
 ```text
-Full Main/Council governance authority address
+Developer wallet deployed and verified Program 1.
+Developer wallet uploaded metadata before handoff.
+DAO handoff is pending.
+Mainnet registry initialization is pending DAO execution.
+```
+
+Target production authority:
+
+```text
+6ZuPrCK472jw3ZjRBqa6PZQ1tyVvY5BuYfWS7GMq7hX8
+```
+
+Production authority items:
+
+```text
 Program upgrade authority
 Registry admin authority
 Treasury/reward authority for later programs
 Emergency pause/resume authority
+```
+
+---
+
+## Mainnet Handoff Status
+
+Pending DAO actions:
+
+```text
+1. Transfer program upgrade authority from:
+   wfSXjyiLAv2mmCyPBhgT5ZNaPtAenNjQ6jaanQpdJJm
+
+   to:
+   6ZuPrCK472jw3ZjRBqa6PZQ1tyVvY5BuYfWS7GMq7hX8
+
+2. Initialize the mainnet Epoch Registry through Realms.
+
+3. Register the current Physis epoch through Realms.
+
+4. Activate the current Physis epoch through Realms.
+```
+
+The mainnet registry should be initialized with:
+
+```text
+registry.realm =
+DsWWtZrqXBcqTTPoEyFH793Euq82r95CuXWTwqo3JZur
+
+registry.authority =
+6ZuPrCK472jw3ZjRBqa6PZQ1tyVvY5BuYfWS7GMq7hX8
+```
+
+---
+
+## Verification and Metadata
+
+Program 1 has completed verified build.
+
+Verified hash:
+
+```text
+7d19d0556c0f081c7641a164a08c30f3991f8f7400eb8c2709ce5291a3fa46a8
+```
+
+Verification job:
+
+```text
+25cf187c-a3ad-499d-aeeb-ded0d6e1d4d7
+```
+
+Verification status:
+
+```text
+https://verify.osec.io/status/PHYcBRWd6mKATk3xo8oYi3d55BBHUc7kAN4kK91cJoE
+```
+
+Verified source commit:
+
+```text
+17f0fcb35601c8fc0537d952d5a5f224a8bd1310
+```
+
+Program Metadata security profile:
+
+```text
+Uploaded
+```
+
+Program Metadata security URL:
+
+```text
+https://cdn.jsdelivr.net/gh/PhysisVerse/physis-orrery@main/metadata/security.json
+```
+
+Program Metadata IDL profile:
+
+```text
+Uploaded
+```
+
+Program Metadata IDL URL:
+
+```text
+https://cdn.jsdelivr.net/gh/PhysisVerse/physis-orrery@main/idls/physis_epoch_registry.json
+```
+
+Embedded security metadata:
+
+```text
+Included through solana-security-txt
+```
+
+GitHub security policy:
+
+```text
+.github/SECURITY.md
+```
+
+Note:
+
+```text
+Some explorers may distinguish between traditional Anchor IDL accounts and newer Program Metadata IDL accounts.
 ```
 
 ---
@@ -295,6 +565,9 @@ Separate payer from authority
 Emergency pause only
 ASTRALIS clock anchor only in Program 1
 Read-only composability before CPI complexity
+Verified build before DAO handoff
+Program metadata before DAO handoff where practical
+No developer wallet as permanent production authority
 ```
 
 ---
@@ -315,6 +588,12 @@ for:
 physis_epoch_registry
 ```
 
+Current Program 1 ID:
+
+```text
+PHYcBRWd6mKATk3xo8oYi3d55BBHUc7kAN4kK91cJoE
+```
+
 Do not commit program keypairs.
 
 ---
@@ -330,6 +609,7 @@ Rust / Cargo
 Solana CLI
 Anchor CLI
 Yarn
+Docker
 ```
 
 Current target stack:
@@ -337,6 +617,7 @@ Current target stack:
 ```text
 anchor-cli: 1.1.2
 solana-cli: 4.1.1
+surfpool: 1.4.0
 ```
 
 ### Install dependencies
@@ -345,16 +626,16 @@ solana-cli: 4.1.1
 yarn install
 ```
 
-### Build
-
-```bash
-anchor build
-```
-
 ### Format
 
 ```bash
 cargo fmt
+```
+
+### Build
+
+```bash
+anchor build
 ```
 
 ### Test
@@ -362,6 +643,118 @@ cargo fmt
 ```bash
 anchor test
 ```
+
+Expected current result:
+
+```text
+14 passing
+```
+
+---
+
+## Localnet
+
+Start Surfpool:
+
+```bash
+surfpool start
+```
+
+Build and deploy:
+
+```bash
+anchor build
+anchor program deploy target/deploy/physis_epoch_registry.so
+```
+
+Initialize, register, inspect, activate, and inspect again:
+
+```bash
+yarn script:init:local
+yarn script:epoch:local
+yarn script:status:local
+yarn script:activate:local
+yarn script:status:local
+```
+
+Expected localnet result:
+
+```text
+Registry initialized.
+Current Physis epoch registered.
+Epoch activated.
+Registry currentEpoch points to the active PhysisEpoch account.
+Epoch status = 1.
+```
+
+---
+
+## Devnet
+
+Load private RPC environment:
+
+```bash
+set -a
+source .env
+set +a
+```
+
+Build and deploy:
+
+```bash
+anchor build
+anchor program deploy target/deploy/physis_epoch_registry.so \
+  --provider.cluster "$HELIUS_DEVNET_RPC" \
+  --provider.wallet ~/.config/solana/id.json
+```
+
+Initialize, register, inspect, activate, and inspect again:
+
+```bash
+yarn script:init:devnet
+yarn script:epoch:devnet
+yarn script:status:devnet
+yarn script:activate:devnet
+yarn script:status:devnet
+```
+
+Expected devnet result:
+
+```text
+Registry initialized.
+Current Physis epoch registered.
+Epoch activated.
+Registry currentEpoch points to the active PhysisEpoch account.
+Epoch status = 1.
+```
+
+---
+
+## Mainnet Deployment Notes
+
+Mainnet deployment should follow the detailed process in:
+
+```text
+docs/DEPLOYMENT.md
+```
+
+High-level mainnet flow:
+
+```text
+1. Run local tests.
+2. Build verifiably.
+3. Deploy the verified artifact.
+4. Verify hashes.
+5. Verify from repo.
+6. Submit remote verification job.
+7. Upload security metadata.
+8. Upload Program Metadata IDL.
+9. Confirm Anchor IDL status separately.
+10. Transfer upgrade authority to DAO.
+11. Initialize registry through Realms.
+```
+
+Do not initialize the mainnet registry from a developer wallet.
 
 ---
 
@@ -374,16 +767,18 @@ The following should remain ignored:
 ```text
 target/deploy/*.json
 *.keypair.json
+.env
+.env.*
 ```
 
 Before committing, verify:
 
 ```bash
 git status
-git ls-files | grep -E "keypair|target/deploy"
+git ls-files | grep -E "target/deploy|keypair|id.json|\.env$"
 ```
 
-No local program keypair should appear in tracked files.
+No local program keypair, private wallet, or private environment file should appear in tracked files.
 
 ---
 
@@ -398,6 +793,12 @@ physis-orrery/
 ├── tsconfig.json
 ├── README.md
 ├── .gitignore
+│
+├── .github/
+│   └── SECURITY.md
+│
+├── assets/
+│   └── orrery.png
 │
 ├── programs/
 │   └── physis_epoch_registry/
@@ -431,9 +832,16 @@ physis-orrery/
 ├── scripts/
 │   ├── localnet/
 │   ├── devnet/
-│   └── governance/
+│   ├── governance/
+│   └── tools/
+│       └── send-exported-base64-tx.ts
 │
 ├── idls/
+│   └── physis_epoch_registry.json
+│
+├── metadata/
+│   └── security.json
+│
 ├── docs/
 ├── configs/
 └── packages/
@@ -461,7 +869,7 @@ DAO_APPROVED_CUSTOM
 
 ### PHY Governance Lock
 
-PHY lock>gov program.
+PHY lock-to-governance program.
 
 Responsibilities:
 
@@ -512,6 +920,8 @@ Node/operator scoring
 Leader rotation roots
 ASTRALIS reward distribution
 ```
+
+ASTRALIS Operator Rewards are intentionally separate from Program 1.
 
 ### Circuit Breaker
 
@@ -568,3 +978,6 @@ https://github.com/PhysisVerse/physis-orrery
 ## License
 
 TBD.
+
+```
+```
