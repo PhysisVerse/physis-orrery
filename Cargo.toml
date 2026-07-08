@@ -1,6 +1,7 @@
 [workspace]
 members = [
-  "programs/physis_epoch_registry"
+  "programs/physis_epoch_registry",
+  "programs/physis_eligibility_registry"
 ]
 resolver = "2"
 

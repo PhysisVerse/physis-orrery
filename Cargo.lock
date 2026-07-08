@@ -686,6 +686,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2ee67f1008b1ba2321834326597b8e186293b049a023cdef258527550b9935b4"
 
 [[package]]
+name = "physis_eligibility_registry"
+version = "0.1.0"
+dependencies = [
+ "anchor-lang",
+ "solana-security-txt",
+]
+
+[[package]]
 name = "physis_epoch_registry"
 version = "0.1.0"
 dependencies = [

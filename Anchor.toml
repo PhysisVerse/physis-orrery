@@ -4,25 +4,29 @@ skip-lint = false
 
 [workspace]
 members = [
-  "programs/physis_epoch_registry"
+  "programs/physis_epoch_registry",
+  "programs/physis_eligibility_registry"
 ]
 types = "target/types"
 
 [programs.localnet]
 physis_epoch_registry = "PHYcBRWd6mKATk3xo8oYi3d55BBHUc7kAN4kK91cJoE"
+physis_eligibility_registry = "PHYwVLxfos5STGcSzFe9Jirzy6YiEPPZC3wVKoTHoER"
 
 [programs.devnet]
 physis_epoch_registry = "PHYcBRWd6mKATk3xo8oYi3d55BBHUc7kAN4kK91cJoE"
+physis_eligibility_registry = "PHYwVLxfos5STGcSzFe9Jirzy6YiEPPZC3wVKoTHoER"
 
 [programs.mainnet]
 physis_epoch_registry = "PHYcBRWd6mKATk3xo8oYi3d55BBHUc7kAN4kK91cJoE"
+physis_eligibility_registry = "PHYwVLxfos5STGcSzFe9Jirzy6YiEPPZC3wVKoTHoER"
 
 [provider]
 cluster = "localnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]
-test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/physis_epoch_registry.spec.ts"
+test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/physis_epoch_registry.spec.ts tests/physis_eligibility_registry.spec.ts"
 
 [toolchain]
 anchor_version = "1.1.2"
