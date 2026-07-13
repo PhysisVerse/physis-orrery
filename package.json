@@ -16,6 +16,11 @@
     "script:activate:devnet": "ANCHOR_PROVIDER_URL=$HELIUS_DEVNET_RPC ANCHOR_WALLET=$HOME/.config/solana/id.json tsx scripts/devnet/activate-current-epoch.ts",
     "script:status:devnet": "ANCHOR_PROVIDER_URL=$HELIUS_DEVNET_RPC ANCHOR_WALLET=$HOME/.config/solana/id.json tsx scripts/devnet/status.ts",
     "script:bootstrap:devnet": "yarn script:init:devnet && yarn script:epoch:devnet && yarn script:status:devnet",
+    "script:eligibility:init:local": "ANCHOR_PROVIDER_URL=http://127.0.0.1:8899 ANCHOR_WALLET=$HOME/.config/solana/id.json tsx scripts/localnet/initialize-eligibility-registry.ts",
+    "script:eligibility:classes:local": "ANCHOR_PROVIDER_URL=http://127.0.0.1:8899 ANCHOR_WALLET=$HOME/.config/solana/id.json tsx scripts/localnet/bootstrap-eligibility-classes.ts",
+    "script:eligibility:status:local": "ANCHOR_PROVIDER_URL=http://127.0.0.1:8899 ANCHOR_WALLET=$HOME/.config/solana/id.json tsx scripts/localnet/eligibility-status.ts",
+    "script:eligibility:bootstrap:local": "yarn script:eligibility:init:local && yarn script:eligibility:classes:local && yarn script:eligibility:status:local",
+    "script:eligibility:lifecycle:local": "ANCHOR_PROVIDER_URL=http://127.0.0.1:8899 ANCHOR_WALLET=$HOME/.config/solana/id.json tsx scripts/localnet/eligibility-record-lifecycle.ts",
     "lint": "cargo fmt --all -- --check && cargo clippy -p physis_eligibility_registry --all-targets -- -D warnings",
     "fmt": "cargo fmt --all"
   },
