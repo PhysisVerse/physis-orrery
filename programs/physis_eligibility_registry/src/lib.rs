@@ -1,3 +1,5 @@
+#![allow(unexpected_cfgs)]
+
 use anchor_lang::prelude::*;
 use solana_security_txt::security_txt;
 
@@ -22,7 +24,6 @@ pub mod utils;
 
 pub use instructions::*;
 
-// TODO: Replace with final PHY...oEL vanity program id before build/deploy.
 declare_id!("PHYwVLxfos5STGcSzFe9Jirzy6YiEPPZC3wVKoTHoER");
 
 #[program]
@@ -36,24 +37,91 @@ pub mod physis_eligibility_registry {
         process_initialize_registry(ctx, governance_mode)
     }
 
-    pub fn upsert_eligibility_class(ctx: Context<UpsertEligibilityClass>) -> Result<()> {
-        process_upsert_eligibility_class(ctx)
+    #[allow(clippy::too_many_arguments)]
+    pub fn upsert_eligibility_class(
+        ctx: Context<UpsertEligibilityClass>,
+        class_id: u32,
+        name: [u8; constants::NAME_BYTES],
+        label: [u8; constants::LABEL_BYTES],
+        kind: u8,
+        status: u8,
+        enabled: bool,
+        governance_eligible: bool,
+        rewards_eligible: bool,
+        gate_mint: Pubkey,
+        min_amount: u64,
+        valid_from_epoch_id: u32,
+        valid_until_epoch_id: u32,
+    ) -> Result<()> {
+        process_upsert_eligibility_class(
+            ctx,
+            class_id,
+            name,
+            label,
+            kind,
+            status,
+            enabled,
+            governance_eligible,
+            rewards_eligible,
+            gate_mint,
+            min_amount,
+            valid_from_epoch_id,
+            valid_until_epoch_id,
+        )
     }
 
-    pub fn disable_eligibility_class(ctx: Context<DisableEligibilityClass>) -> Result<()> {
-        process_disable_eligibility_class(ctx)
+    pub fn disable_eligibility_class(
+        ctx: Context<DisableEligibilityClass>,
+        class_id: u32,
+    ) -> Result<()> {
+        process_disable_eligibility_class(ctx, class_id)
     }
 
-    pub fn upsert_eligibility_record(ctx: Context<UpsertEligibilityRecord>) -> Result<()> {
-        process_upsert_eligibility_record(ctx)
+    #[allow(clippy::too_many_arguments)]
+    pub fn upsert_eligibility_record(
+        ctx: Context<UpsertEligibilityRecord>,
+        class_id: u32,
+        subject_kind: u8,
+        subject_key: [u8; constants::SUBJECT_KEY_BYTES],
+        wallet: Pubkey,
+        status: u8,
+        source: u8,
+        issuer: Pubkey,
+        metadata_hash: [u8; constants::METADATA_HASH_BYTES],
+        valid_from_epoch_id: u32,
+        valid_until_epoch_id: u32,
+    ) -> Result<()> {
+        process_upsert_eligibility_record(
+            ctx,
+            class_id,
+            subject_kind,
+            subject_key,
+            wallet,
+            status,
+            source,
+            issuer,
+            metadata_hash,
+            valid_from_epoch_id,
+            valid_until_epoch_id,
+        )
     }
 
-    pub fn suspend_eligibility_record(ctx: Context<SuspendEligibilityRecord>) -> Result<()> {
-        process_suspend_eligibility_record(ctx)
+    pub fn suspend_eligibility_record(
+        ctx: Context<SuspendEligibilityRecord>,
+        class_id: u32,
+        subject_kind: u8,
+        subject_key: [u8; constants::SUBJECT_KEY_BYTES],
+    ) -> Result<()> {
+        process_suspend_eligibility_record(ctx, class_id, subject_kind, subject_key)
     }
 
-    pub fn revoke_eligibility_record(ctx: Context<RevokeEligibilityRecord>) -> Result<()> {
-        process_revoke_eligibility_record(ctx)
+    pub fn revoke_eligibility_record(
+        ctx: Context<RevokeEligibilityRecord>,
+        class_id: u32,
+        subject_kind: u8,
+        subject_key: [u8; constants::SUBJECT_KEY_BYTES],
+    ) -> Result<()> {
+        process_revoke_eligibility_record(ctx, class_id, subject_kind, subject_key)
     }
 
     pub fn pause_registry(ctx: Context<PauseRegistry>) -> Result<()> {

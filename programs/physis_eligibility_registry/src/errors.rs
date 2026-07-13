@@ -55,4 +55,19 @@ pub enum EligibilityError {
 
     #[msg("New authority cannot be default pubkey")]
     InvalidNewAuthority,
+
+    #[msg("Eligibility record cannot be suspended from its current status")]
+    EligibilityRecordNotSuspendable,
+
+    #[msg("Eligibility record is already revoked")]
+    EligibilityRecordAlreadyRevoked,
+
+    #[msg("Eligibility class id does not match its class kind")]
+    ClassIdKindMismatch,
+
+    #[msg("Eligibility class status and enabled state are inconsistent")]
+    InvalidClassState,
+
+    #[msg("Math overflow")]
+    MathOverflow,
 }
