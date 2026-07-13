@@ -12,11 +12,11 @@ pub struct InitializeRegistry<'info> {
 
     pub authority: Signer<'info>,
 
-    /// CHECK: Realm account is stored as an external Realms/SPL Governance reference.
+    /// CHECK: External SPL Governance Realm reference used in PDA derivation.
     pub realm: UncheckedAccount<'info>,
 
-    /// CHECK: Program 1 epoch registry is stored as an external Orrery reference.
-    /// Program 2 v1 binds to this address but does not read/validate Program 1 state.
+    /// CHECK: Validated in the processor as the canonical Program 1
+    /// epoch-registry PDA for the supplied Realm.
     pub epoch_registry: UncheckedAccount<'info>,
 
     #[account(
@@ -44,15 +44,28 @@ pub fn process_initialize_registry(
         EligibilityError::InvalidGovernanceMode
     );
 
+    let realm_key = ctx.accounts.realm.key();
+
+    let (expected_epoch_registry, _) = Pubkey::find_program_address(
+        &[SEED_PREFIX, SEED_EPOCH_REGISTRY, realm_key.as_ref()],
+        &PHYSIS_EPOCH_REGISTRY_PROGRAM_ID,
+    );
+
+    require_keys_eq!(
+        ctx.accounts.epoch_registry.key(),
+        expected_epoch_registry,
+        EligibilityError::InvalidEpochRegistry
+    );
+
     let clock = Clock::get()?;
     let registry_key = ctx.accounts.registry.key();
 
     let registry = &mut ctx.accounts.registry;
 
     registry.version = REGISTRY_VERSION;
-    registry.realm = ctx.accounts.realm.key();
+    registry.realm = realm_key;
     registry.authority = ctx.accounts.authority.key();
-    registry.epoch_registry = ctx.accounts.epoch_registry.key();
+    registry.epoch_registry = expected_epoch_registry;
     registry.governance_mode = governance_mode;
     registry.paused = false;
     registry.class_count = 0;

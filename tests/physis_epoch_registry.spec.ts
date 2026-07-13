@@ -1,5 +1,6 @@
 import * as anchor from "@anchor-lang/core";
 import { Program } from "@anchor-lang/core";
+import type { PhysisEpochRegistry } from "../packages/idl-types/physis_epoch_registry.ts";
 import {
   Keypair,
   SystemProgram,
@@ -24,7 +25,8 @@ describe("physis_epoch_registry", () => {
   const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
 
-  const program = anchor.workspace.PhysisEpochRegistry as Program;
+  const program =
+  anchor.workspace.PhysisEpochRegistry as Program<PhysisEpochRegistry>;
 
   assert.strictEqual(program.programId.toBase58(), PROGRAM_ID);
 
@@ -58,7 +60,7 @@ describe("physis_epoch_registry", () => {
 		new anchor.BN(ASTRALIS_EPOCH_ZERO_TS),
 		new anchor.BN(ASTRALIS_EPOCH_DURATION_SECONDS),
 	  )
-	  .accounts({
+	  .accountsStrict({
 		payer: provider.wallet.publicKey,
 		authority: provider.wallet.publicKey,
 		realm: realm.publicKey,
@@ -110,7 +112,7 @@ describe("physis_epoch_registry", () => {
 		new anchor.BN(startTs),
 		new anchor.BN(endTs),
 	  )
-	  .accounts({
+	  .accountsStrict({
 		payer: provider.wallet.publicKey,
 		authority: params?.authority?.publicKey ?? provider.wallet.publicKey,
 		registry,
@@ -173,7 +175,7 @@ describe("physis_epoch_registry", () => {
 		new anchor.BN(startTs),
 		new anchor.BN(endTs),
 	  )
-	  .accounts({
+	  .accountsStrict({
 		payer: provider.wallet.publicKey,
 		authority: provider.wallet.publicKey,
 		registry,
@@ -201,7 +203,7 @@ describe("physis_epoch_registry", () => {
 
 	await program.methods
 	  .pauseRegistry()
-	  .accounts({
+	  .accountsStrict({
 		authority: provider.wallet.publicKey,
 		registry,
 	  })
@@ -212,7 +214,7 @@ describe("physis_epoch_registry", () => {
 
 	await program.methods
 	  .resumeRegistry()
-	  .accounts({
+	  .accountsStrict({
 		authority: provider.wallet.publicKey,
 		registry,
 	  })
@@ -233,7 +235,7 @@ describe("physis_epoch_registry", () => {
 
 	await program.methods
 	  .activateEpoch()
-	  .accounts({
+	  .accountsStrict({
 		authority: provider.wallet.publicKey,
 		registry,
 		epoch,
@@ -244,7 +246,7 @@ describe("physis_epoch_registry", () => {
 	const epochAccount = await program.account.physisEpoch.fetch(epoch);
 
 	assert.strictEqual(epochAccount.status, EPOCH_STATUS_ACTIVE);
-	assert.strictEqual(registryAccount.currentEpoch.toBase58(), epoch.toBase58());
+	assert.strictEqual(registryAccount.currentEpoch!.toBase58(), epoch.toBase58());
 	assert.ok(epochAccount.activatedAtTs.toNumber() > 0);
 	assert.ok(epochAccount.activatedAtSlot.toNumber() > 0);
 	assert.ok(epochAccount.activatedAtSolanaEpoch.toNumber() >= 0);
@@ -261,7 +263,7 @@ describe("physis_epoch_registry", () => {
 
 	await program.methods
 	  .activateEpoch()
-	  .accounts({
+	  .accountsStrict({
 		authority: provider.wallet.publicKey,
 		registry,
 		epoch,
@@ -270,7 +272,7 @@ describe("physis_epoch_registry", () => {
 
 	await program.methods
 	  .closeEpoch()
-	  .accounts({
+	  .accountsStrict({
 		authority: provider.wallet.publicKey,
 		registry,
 		epoch,
@@ -282,7 +284,7 @@ describe("physis_epoch_registry", () => {
 
 	assert.strictEqual(epochAccount.status, EPOCH_STATUS_CLOSED);
 	assert.strictEqual(registryAccount.currentEpoch, null);
-	assert.strictEqual(registryAccount.latestClosedEpoch.toBase58(), epoch.toBase58());
+	assert.strictEqual(registryAccount.latestClosedEpoch!.toBase58(), epoch.toBase58());
 	assert.ok(epochAccount.closedAtTs.toNumber() > 0);
 	assert.ok(epochAccount.closedAtSlot.toNumber() > 0);
 	assert.ok(epochAccount.closedAtSolanaEpoch.toNumber() >= 0);
@@ -361,7 +363,7 @@ describe("physis_epoch_registry", () => {
 
 	await program.methods
 	  .pauseRegistry()
-	  .accounts({
+	  .accountsStrict({
 		authority: provider.wallet.publicKey,
 		registry,
 	  })
@@ -386,7 +388,7 @@ describe("physis_epoch_registry", () => {
 	  () =>
 		program.methods
 		  .activateEpoch()
-		  .accounts({
+		  .accountsStrict({
 			authority: provider.wallet.publicKey,
 			registry,
 			epoch,
@@ -407,7 +409,7 @@ describe("physis_epoch_registry", () => {
 
 	await program.methods
 	  .activateEpoch()
-	  .accounts({
+	  .accountsStrict({
 		authority: provider.wallet.publicKey,
 		registry,
 		epoch,
@@ -418,7 +420,7 @@ describe("physis_epoch_registry", () => {
 	  () =>
 		program.methods
 		  .closeEpoch()
-		  .accounts({
+		  .accountsStrict({
 			authority: provider.wallet.publicKey,
 			registry,
 			epoch,
@@ -451,7 +453,7 @@ describe("physis_epoch_registry", () => {
 
 	await program.methods
 	  .activateEpoch()
-	  .accounts({
+	  .accountsStrict({
 		authority: provider.wallet.publicKey,
 		registry,
 		epoch: first.epoch,
@@ -462,7 +464,7 @@ describe("physis_epoch_registry", () => {
 	  () =>
 		program.methods
 		  .activateEpoch()
-		  .accounts({
+		  .accountsStrict({
 			authority: provider.wallet.publicKey,
 			registry,
 			epoch: second.epoch,

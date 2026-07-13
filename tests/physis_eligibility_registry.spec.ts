@@ -1,5 +1,5 @@
 import * as anchor from "@anchor-lang/core";
-import { Program } from "@anchor-lang/core";
+import { getEligibilityProgram } from "./helpers/eligibility-program.ts";
 import { Keypair, PublicKey, SystemProgram } from "@solana/web3.js";
 import assert from "assert";
 
@@ -30,6 +30,7 @@ import {
 } from "./helpers/eligibility-constants.ts";
 
 import {
+  findCanonicalEpochRegistryPda,
   findEligibilityClassPda,
   findEligibilityRecordPda,
   findEligibilityRegistryPda,
@@ -39,15 +40,11 @@ describe("physis_eligibility_registry", () => {
   const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
 
-  const program = anchor.workspace.PhysisEligibilityRegistry as Program;
+  const program = getEligibilityProgram();
 
   assert.strictEqual(program.programId.toBase58(), ELIGIBILITY_PROGRAM_ID);
 
   function createFakeRealm(): Keypair {
-	return Keypair.generate();
-  }
-
-  function createFakeEpochRegistry(): Keypair {
 	return Keypair.generate();
   }
 
@@ -86,11 +83,14 @@ describe("physis_eligibility_registry", () => {
 
   async function initializeEligibilityRegistry(params?: {
 	realm?: Keypair;
-	epochRegistry?: Keypair;
+	epochRegistry?: PublicKey;
 	governanceMode?: number;
   }) {
 	const realm = params?.realm ?? createFakeRealm();
-	const epochRegistry = params?.epochRegistry ?? createFakeEpochRegistry();
+
+	const epochRegistry =
+	  params?.epochRegistry ??
+	  findCanonicalEpochRegistryPda(realm.publicKey);
 
 	const { pda: registry, bump } = findEligibilityRegistryPda(
 	  program.programId,
@@ -98,12 +98,14 @@ describe("physis_eligibility_registry", () => {
 	);
 
 	await program.methods
-	  .initializeRegistry(params?.governanceMode ?? GOVERNANCE_MODE_PRIVE_ONLY)
-	  .accounts({
+	  .initializeRegistry(
+		params?.governanceMode ?? GOVERNANCE_MODE_PRIVE_ONLY,
+	  )
+	  .accountsStrict({
 		payer: provider.wallet.publicKey,
 		authority: provider.wallet.publicKey,
 		realm: realm.publicKey,
-		epochRegistry: epochRegistry.publicKey,
+		epochRegistry,
 		registry,
 		systemProgram: SystemProgram.programId,
 	  })
@@ -159,7 +161,7 @@ describe("physis_eligibility_registry", () => {
 		params?.validFromEpochId ?? 0,
 		params?.validUntilEpochId ?? 0,
 	  )
-	  .accounts({
+	  .accountsStrict({
 		payer: provider.wallet.publicKey,
 		authority: params?.authority?.publicKey ?? provider.wallet.publicKey,
 		registry,
@@ -194,7 +196,7 @@ describe("physis_eligibility_registry", () => {
 
 	const builder = program.methods
 	  .disableEligibilityClass(params.classId)
-	  .accounts({
+	  .accountsStrict({
 		authority: params.authority?.publicKey ?? provider.wallet.publicKey,
 		registry: params.registry,
 		eligibilityClass,
@@ -280,7 +282,7 @@ describe("physis_eligibility_registry", () => {
 		params.validFromEpochId ?? 0,
 		params.validUntilEpochId ?? 0,
 	  )
-	  .accounts({
+	  .accountsStrict({
 		payer: provider.wallet.publicKey,
 		authority: params.authority?.publicKey ?? provider.wallet.publicKey,
 		registry: params.registry,
@@ -325,8 +327,12 @@ describe("physis_eligibility_registry", () => {
 	);
 
 	const builder = program.methods
-	  .suspendEligibilityRecord(classId, subjectKind, params.subjectKey)
-	  .accounts({
+	  .suspendEligibilityRecord(
+		classId,
+		subjectKind,
+		params.subjectKey,
+	  )
+	  .accountsStrict({
 		authority: params.authority?.publicKey ?? provider.wallet.publicKey,
 		registry: params.registry,
 		eligibilityClass: params.eligibilityClass,
@@ -364,8 +370,12 @@ describe("physis_eligibility_registry", () => {
 	);
 
 	const builder = program.methods
-	  .revokeEligibilityRecord(classId, subjectKind, params.subjectKey)
-	  .accounts({
+	  .revokeEligibilityRecord(
+		classId,
+		subjectKind,
+		params.subjectKey,
+	  )
+	  .accountsStrict({
 		authority: params.authority?.publicKey ?? provider.wallet.publicKey,
 		registry: params.registry,
 		eligibilityClass: params.eligibilityClass,
@@ -391,15 +401,22 @@ describe("physis_eligibility_registry", () => {
 
 	assert.strictEqual(account.version, ELIGIBILITY_REGISTRY_VERSION);
 	assert.strictEqual(account.realm.toBase58(), realm.publicKey.toBase58());
+
 	assert.strictEqual(
 	  account.authority.toBase58(),
 	  provider.wallet.publicKey.toBase58(),
 	);
+
 	assert.strictEqual(
 	  account.epochRegistry.toBase58(),
-	  epochRegistry.publicKey.toBase58(),
+	  epochRegistry.toBase58(),
 	);
-	assert.strictEqual(account.governanceMode, GOVERNANCE_MODE_PRIVE_ONLY);
+
+	assert.strictEqual(
+	  account.governanceMode,
+	  GOVERNANCE_MODE_PRIVE_ONLY,
+	);
+
 	assert.strictEqual(account.paused, false);
 	assert.strictEqual(account.classCount, 0);
 	assert.strictEqual(account.recordCount.toNumber(), 0);
@@ -413,10 +430,12 @@ describe("physis_eligibility_registry", () => {
 	  account.updatedTs.toNumber(),
 	  account.createdTs.toNumber(),
 	);
+
 	assert.strictEqual(
 	  account.updatedSlot.toNumber(),
 	  account.createdSlot.toNumber(),
 	);
+
 	assert.strictEqual(
 	  account.updatedSolanaEpoch.toNumber(),
 	  account.createdSolanaEpoch.toNumber(),
@@ -425,6 +444,7 @@ describe("physis_eligibility_registry", () => {
 
   it("derives the registry PDA from realm", async () => {
 	const realm = createFakeRealm();
+
 	const { pda: expectedRegistry } = findEligibilityRegistryPda(
 	  program.programId,
 	  realm.publicKey,
@@ -432,7 +452,10 @@ describe("physis_eligibility_registry", () => {
 
 	const { registry } = await initializeEligibilityRegistry({ realm });
 
-	assert.strictEqual(registry.toBase58(), expectedRegistry.toBase58());
+	assert.strictEqual(
+	  registry.toBase58(),
+	  expectedRegistry.toBase58(),
+	);
   });
 
   it("rejects invalid governance mode", async () => {
@@ -447,7 +470,9 @@ describe("physis_eligibility_registry", () => {
 
   it("rejects duplicate initialize for the same realm", async () => {
 	const realm = createFakeRealm();
-	const epochRegistry = createFakeEpochRegistry();
+
+	const epochRegistry =
+	  findCanonicalEpochRegistryPda(realm.publicKey);
 
 	await initializeEligibilityRegistry({
 	  realm,
@@ -470,31 +495,44 @@ describe("physis_eligibility_registry", () => {
 
 	const registryAccount =
 	  await program.account.eligibilityRegistry.fetch(registry);
+
 	const classAccount =
 	  await program.account.eligibilityClass.fetch(eligibilityClass);
 
 	assert.strictEqual(registryAccount.classCount, 1);
 	assert.strictEqual(classAccount.version, ELIGIBILITY_CLASS_VERSION);
-	assert.strictEqual(classAccount.registry.toBase58(), registry.toBase58());
+	assert.strictEqual(
+	  classAccount.registry.toBase58(),
+	  registry.toBase58(),
+	);
 	assert.strictEqual(classAccount.classId, CLASS_ID_PRIVE_MEMBER);
+
 	assert.strictEqual(
 	  bytesToTrimmedString(classAccount.name),
 	  "PRIVE_MEMBER",
 	);
-	assert.strictEqual(bytesToTrimmedString(classAccount.label), "PRIVE");
+
+	assert.strictEqual(
+	  bytesToTrimmedString(classAccount.label),
+	  "PRIVE",
+	);
+
 	assert.strictEqual(classAccount.kind, CLASS_KIND_PRIVE_MEMBER);
 	assert.strictEqual(classAccount.status, CLASS_STATUS_ACTIVE);
 	assert.strictEqual(classAccount.enabled, true);
 	assert.strictEqual(classAccount.governanceEligible, true);
 	assert.strictEqual(classAccount.rewardsEligible, true);
+
 	assert.strictEqual(
 	  classAccount.gateMint.toBase58(),
 	  PublicKey.default.toBase58(),
 	);
+
 	assert.strictEqual(classAccount.minAmount.toNumber(), 0);
 	assert.strictEqual(classAccount.validFromEpochId, 0);
 	assert.strictEqual(classAccount.validUntilEpochId, 0);
 	assert.strictEqual(classAccount.bump, bump);
+
 	assert.ok(classAccount.createdTs.toNumber() > 0);
 	assert.ok(classAccount.createdSlot.toNumber() > 0);
 	assert.ok(classAccount.createdSolanaEpoch.toNumber() >= 0);
@@ -506,19 +544,38 @@ describe("physis_eligibility_registry", () => {
 
 	const registryAccount =
 	  await program.account.eligibilityRegistry.fetch(registry);
+
 	const classAccount =
 	  await program.account.eligibilityClass.fetch(eligibilityClass);
 
 	assert.strictEqual(registryAccount.classCount, 1);
 	assert.strictEqual(classAccount.version, ELIGIBILITY_CLASS_VERSION);
-	assert.strictEqual(classAccount.registry.toBase58(), registry.toBase58());
-	assert.strictEqual(classAccount.classId, CLASS_ID_PERSONA_VERIFIED);
+
+	assert.strictEqual(
+	  classAccount.registry.toBase58(),
+	  registry.toBase58(),
+	);
+
+	assert.strictEqual(
+	  classAccount.classId,
+	  CLASS_ID_PERSONA_VERIFIED,
+	);
+
 	assert.strictEqual(
 	  bytesToTrimmedString(classAccount.name),
 	  "PERSONA_VERIFIED",
 	);
-	assert.strictEqual(bytesToTrimmedString(classAccount.label), "PERSONA");
-	assert.strictEqual(classAccount.kind, CLASS_KIND_PERSONA_VERIFIED);
+
+	assert.strictEqual(
+	  bytesToTrimmedString(classAccount.label),
+	  "PERSONA",
+	);
+
+	assert.strictEqual(
+	  classAccount.kind,
+	  CLASS_KIND_PERSONA_VERIFIED,
+	);
+
 	assert.strictEqual(classAccount.status, CLASS_STATUS_ACTIVE);
 	assert.strictEqual(classAccount.enabled, true);
 	assert.strictEqual(classAccount.governanceEligible, false);
@@ -531,6 +588,7 @@ describe("physis_eligibility_registry", () => {
 
 	let registryAccount =
 	  await program.account.eligibilityRegistry.fetch(registry);
+
 	assert.strictEqual(registryAccount.classCount, 1);
 
 	await upsertEligibilityClass({
@@ -548,16 +606,24 @@ describe("physis_eligibility_registry", () => {
 	  validUntilEpochId: 202603,
 	});
 
-	registryAccount = await program.account.eligibilityRegistry.fetch(registry);
+	registryAccount =
+	  await program.account.eligibilityRegistry.fetch(registry);
+
 	const classAccount =
 	  await program.account.eligibilityClass.fetch(eligibilityClass);
 
 	assert.strictEqual(registryAccount.classCount, 1);
-	assert.strictEqual(bytesToTrimmedString(classAccount.label), "PRIVE_V2");
+
+	assert.strictEqual(
+	  bytesToTrimmedString(classAccount.label),
+	  "PRIVE_V2",
+	);
+
 	assert.strictEqual(classAccount.rewardsEligible, false);
 	assert.strictEqual(classAccount.minAmount.toNumber(), 42);
 	assert.strictEqual(classAccount.validFromEpochId, 202602);
 	assert.strictEqual(classAccount.validUntilEpochId, 202603);
+
 	assert.ok(
 	  classAccount.updatedSlot.toNumber() >=
 		classAccount.createdSlot.toNumber(),
@@ -570,6 +636,7 @@ describe("physis_eligibility_registry", () => {
 
 	const beforeRegistry =
 	  await program.account.eligibilityRegistry.fetch(registry);
+
 	const beforeClass =
 	  await program.account.eligibilityClass.fetch(eligibilityClass);
 
@@ -580,6 +647,7 @@ describe("physis_eligibility_registry", () => {
 
 	const afterRegistry =
 	  await program.account.eligibilityRegistry.fetch(registry);
+
 	const afterClass =
 	  await program.account.eligibilityClass.fetch(eligibilityClass);
 
@@ -610,25 +678,34 @@ describe("physis_eligibility_registry", () => {
 
 	const registryAccount =
 	  await program.account.eligibilityRegistry.fetch(registry);
+
 	const recordAccount =
 	  await program.account.eligibilityRecord.fetch(eligibilityRecord);
 
 	assert.strictEqual(registryAccount.recordCount.toNumber(), 1);
 	assert.strictEqual(recordAccount.version, ELIGIBILITY_RECORD_VERSION);
-	assert.strictEqual(recordAccount.registry.toBase58(), registry.toBase58());
+
+	assert.strictEqual(
+	  recordAccount.registry.toBase58(),
+	  registry.toBase58(),
+	);
+
 	assert.strictEqual(
 	  recordAccount.eligibilityClass.toBase58(),
 	  eligibilityClass.toBase58(),
 	);
+
 	assert.strictEqual(recordAccount.classId, CLASS_ID_PRIVE_MEMBER);
 	assert.strictEqual(recordAccount.subjectKind, SUBJECT_KIND_WALLET);
 	assert.deepStrictEqual(recordAccount.subjectKey, subjectKey);
 	assert.strictEqual(recordAccount.wallet.toBase58(), wallet.toBase58());
 	assert.strictEqual(recordAccount.status, RECORD_STATUS_ACTIVE);
+
 	assert.strictEqual(
 	  recordAccount.source,
 	  ELIGIBILITY_SOURCE_PRIVE_COLLECTION_VERIFIED,
 	);
+
 	assert.strictEqual(recordAccount.bump, bump);
   });
 
@@ -650,8 +727,13 @@ describe("physis_eligibility_registry", () => {
 	const recordAccount =
 	  await program.account.eligibilityRecord.fetch(eligibilityRecord);
 
-	assert.strictEqual(recordAccount.classId, CLASS_ID_PERSONA_VERIFIED);
+	assert.strictEqual(
+	  recordAccount.classId,
+	  CLASS_ID_PERSONA_VERIFIED,
+	);
+
 	assert.strictEqual(recordAccount.status, RECORD_STATUS_ACTIVE);
+
 	assert.strictEqual(
 	  recordAccount.source,
 	  ELIGIBILITY_SOURCE_PERSONA_ATTESTATION,
@@ -684,12 +766,16 @@ describe("physis_eligibility_registry", () => {
 
 	const registryAccount =
 	  await program.account.eligibilityRegistry.fetch(registry);
+
 	const recordAccount =
 	  await program.account.eligibilityRecord.fetch(eligibilityRecord);
 
 	assert.strictEqual(registryAccount.recordCount.toNumber(), 1);
 	assert.strictEqual(recordAccount.status, RECORD_STATUS_PENDING);
-	assert.strictEqual(recordAccount.source, ELIGIBILITY_SOURCE_DAO_APPROVED);
+	assert.strictEqual(
+	  recordAccount.source,
+	  ELIGIBILITY_SOURCE_DAO_APPROVED,
+	);
 	assert.strictEqual(recordAccount.validFromEpochId, 202602);
 	assert.strictEqual(recordAccount.validUntilEpochId, 202603);
   });
@@ -718,20 +804,26 @@ describe("physis_eligibility_registry", () => {
 
 	const registryAccount =
 	  await program.account.eligibilityRegistry.fetch(registry);
+
 	const after =
 	  await program.account.eligibilityRecord.fetch(eligibilityRecord);
 
 	assert.strictEqual(registryAccount.recordCount.toNumber(), 1);
 	assert.strictEqual(after.status, RECORD_STATUS_SUSPENDED);
+
 	assert.strictEqual(
 	  after.createdTs.toString(),
 	  before.createdTs.toString(),
 	);
+
 	assert.strictEqual(
 	  after.createdSlot.toString(),
 	  before.createdSlot.toString(),
 	);
-	assert.ok(after.updatedSlot.toNumber() >= before.updatedSlot.toNumber());
+
+	assert.ok(
+	  after.updatedSlot.toNumber() >= before.updatedSlot.toNumber(),
+	);
   });
 
   it("reactivates a suspended record through upsert", async () => {
@@ -764,6 +856,7 @@ describe("physis_eligibility_registry", () => {
 
 	const registryAccount =
 	  await program.account.eligibilityRegistry.fetch(registry);
+
 	const recordAccount =
 	  await program.account.eligibilityRecord.fetch(eligibilityRecord);
 
@@ -792,6 +885,7 @@ describe("physis_eligibility_registry", () => {
 
 	const registryAccount =
 	  await program.account.eligibilityRegistry.fetch(registry);
+
 	const recordAccount =
 	  await program.account.eligibilityRecord.fetch(eligibilityRecord);
 
@@ -829,6 +923,7 @@ describe("physis_eligibility_registry", () => {
 
 	const registryAccount =
 	  await program.account.eligibilityRegistry.fetch(registry);
+
 	const recordAccount =
 	  await program.account.eligibilityRecord.fetch(eligibilityRecord);
 
@@ -996,6 +1091,7 @@ describe("physis_eligibility_registry", () => {
   it("rejects wallet subject mismatch", async () => {
 	const { registry } = await initializeEligibilityRegistry();
 	const { eligibilityClass } = await createPriveClass(registry);
+
 	const wallet = Keypair.generate().publicKey;
 	const otherWallet = Keypair.generate().publicKey;
 

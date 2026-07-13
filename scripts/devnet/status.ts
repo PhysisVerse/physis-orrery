@@ -1,5 +1,6 @@
 import * as anchor from "@anchor-lang/core";
 import { Program } from "@anchor-lang/core";
+import type { PhysisEpochRegistry } from "../../packages/idl-types/physis_epoch_registry.ts";
 import { PublicKey } from "@solana/web3.js";
 import fs from "fs";
 import path from "path";
@@ -34,7 +35,8 @@ async function main(): Promise<void> {
   const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
 
-  const program = anchor.workspace.PhysisEpochRegistry as Program;
+  const program =
+  anchor.workspace.PhysisEpochRegistry as Program<PhysisEpochRegistry>;
 
   const realm = new PublicKey(config.realm);
   const registry = findRegistryPda(program.programId, realm);

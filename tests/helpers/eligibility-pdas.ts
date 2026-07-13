@@ -1,5 +1,22 @@
 import { PublicKey } from "@solana/web3.js";
 
+import { EPOCH_REGISTRY_PROGRAM_ID } from "./eligibility-constants.ts";
+
+export function findCanonicalEpochRegistryPda(
+  realm: PublicKey,
+): PublicKey {
+  const [pda] = PublicKey.findProgramAddressSync(
+	[
+	  Buffer.from("physis"),
+	  Buffer.from("epoch-registry"),
+	  realm.toBuffer(),
+	],
+	new PublicKey(EPOCH_REGISTRY_PROGRAM_ID),
+  );
+
+  return pda;
+}
+
 export function findEligibilityRegistryPda(
   programId: PublicKey,
   realm: PublicKey,
@@ -8,7 +25,11 @@ export function findEligibilityRegistryPda(
   bump: number;
 } {
   const [pda, bump] = PublicKey.findProgramAddressSync(
-	[Buffer.from("physis"), Buffer.from("eligibility-registry"), realm.toBuffer()],
+	[
+	  Buffer.from("physis"),
+	  Buffer.from("eligibility-registry"),
+	  realm.toBuffer(),
+	],
 	programId,
   );
 

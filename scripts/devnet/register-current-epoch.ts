@@ -1,5 +1,6 @@
 import * as anchor from "@anchor-lang/core";
 import { Program } from "@anchor-lang/core";
+import type { PhysisEpochRegistry } from "../../packages/idl-types/physis_epoch_registry.ts";
 import {
   PublicKey,
   SystemProgram,
@@ -151,7 +152,8 @@ async function main(): Promise<void> {
   const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
 
-  const program = anchor.workspace.PhysisEpochRegistry as Program;
+  const program =
+  anchor.workspace.PhysisEpochRegistry as Program<PhysisEpochRegistry>;
 
   if (program.programId.toBase58() !== config.programId) {
 	throw new Error(
@@ -199,7 +201,7 @@ async function main(): Promise<void> {
 	  new anchor.BN(currentEpoch.startTs),
 	  new anchor.BN(currentEpoch.endTs),
 	)
-	.accounts({
+	.accountsStrict({
 	  payer: provider.wallet.publicKey,
 	  authority: provider.wallet.publicKey,
 	  registry,

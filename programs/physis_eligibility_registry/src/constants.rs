@@ -11,9 +11,14 @@ pub const METADATA_HASH_BYTES: usize = 32;
 pub const RESERVED_BYTES: usize = 128;
 
 pub const SEED_PREFIX: &[u8] = b"physis";
+
+pub const SEED_EPOCH_REGISTRY: &[u8] = b"epoch-registry";
 pub const SEED_ELIGIBILITY_REGISTRY: &[u8] = b"eligibility-registry";
 pub const SEED_ELIGIBILITY_CLASS: &[u8] = b"eligibility-class";
 pub const SEED_ELIGIBILITY_RECORD: &[u8] = b"eligibility-record";
+
+pub const PHYSIS_EPOCH_REGISTRY_PROGRAM_ID: Pubkey =
+    pubkey!("PHYcBRWd6mKATk3xo8oYi3d55BBHUc7kAN4kK91cJoE");
 
 pub const GOVERNANCE_MODE_PRIVE_ONLY: u8 = 1;
 
@@ -21,7 +26,7 @@ pub const CLASS_ID_PRIVE_MEMBER: u32 = 1;
 pub const CLASS_ID_PERSONA_VERIFIED: u32 = 2;
 
 // Reserved future class identifiers.
-// These are not accepted as live v1 eligibility classes.
+// These are documented but cannot become live Program 2 v1 classes.
 pub const CLASS_ID_PHY_HOLDER_RESERVED: u32 = 10;
 pub const CLASS_ID_ASTRALIS_HOLDER_RESERVED: u32 = 11;
 pub const CLASS_ID_LOCKED_PHY_ELIGIBLE_RESERVED: u32 = 13;
@@ -36,7 +41,7 @@ pub const CLASS_KIND_PRIVE_MEMBER: u8 = 1;
 pub const CLASS_KIND_PERSONA_VERIFIED: u8 = 2;
 
 // Reserved future class kinds.
-// These remain documented but are intentionally invalid for live v1 classes.
+// These remain invalid for live Program 2 v1 classes.
 pub const CLASS_KIND_PHY_HOLDER_RESERVED: u8 = 10;
 pub const CLASS_KIND_ASTRALIS_HOLDER_RESERVED: u8 = 11;
 pub const CLASS_KIND_LOCKED_PHY_ELIGIBLE_RESERVED: u8 = 13;

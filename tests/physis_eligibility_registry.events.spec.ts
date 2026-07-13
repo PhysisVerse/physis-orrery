@@ -1,5 +1,5 @@
 import * as anchor from "@anchor-lang/core";
-import { Program } from "@anchor-lang/core";
+import { getEligibilityProgram } from "./helpers/eligibility-program.ts";
 import { Keypair, PublicKey, SystemProgram } from "@solana/web3.js";
 import assert from "assert";
 
@@ -18,6 +18,7 @@ import {
 } from "./helpers/eligibility-constants.ts";
 
 import {
+  findCanonicalEpochRegistryPda,
   findEligibilityClassPda,
   findEligibilityRecordPda,
   findEligibilityRegistryPda,
@@ -32,7 +33,7 @@ describe("physis_eligibility_registry events", () => {
   const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
 
-  const program = anchor.workspace.PhysisEligibilityRegistry as Program;
+  const program = getEligibilityProgram();
 
   assert.strictEqual(program.programId.toBase58(), ELIGIBILITY_PROGRAM_ID);
 
@@ -139,7 +140,7 @@ describe("physis_eligibility_registry events", () => {
 
   async function initializeRegistry() {
 	const realm = Keypair.generate();
-	const epochRegistry = Keypair.generate();
+	const epochRegistry = findCanonicalEpochRegistryPda(realm.publicKey);
 
 	const { pda: registry } = findEligibilityRegistryPda(
 	  program.programId,
@@ -148,11 +149,11 @@ describe("physis_eligibility_registry events", () => {
 
 	const signature = await program.methods
 	  .initializeRegistry(GOVERNANCE_MODE_PRIVE_ONLY)
-	  .accounts({
+	  .accountsStrict({
 		payer: provider.wallet.publicKey,
 		authority: provider.wallet.publicKey,
 		realm: realm.publicKey,
-		epochRegistry: epochRegistry.publicKey,
+		epochRegistry,
 		registry,
 		systemProgram: SystemProgram.programId,
 	  })
@@ -188,7 +189,7 @@ describe("physis_eligibility_registry events", () => {
 		0,
 		0,
 	  )
-	  .accounts({
+	  .accountsStrict({
 		payer: provider.wallet.publicKey,
 		authority: provider.wallet.publicKey,
 		registry,
@@ -231,7 +232,7 @@ describe("physis_eligibility_registry events", () => {
 		0,
 		0,
 	  )
-	  .accounts({
+	  .accountsStrict({
 		payer: provider.wallet.publicKey,
 		authority: provider.wallet.publicKey,
 		registry,
@@ -278,7 +279,7 @@ describe("physis_eligibility_registry events", () => {
 	  asPublicKey(
 		eventField(data, "epochRegistry", "epoch_registry"),
 	  ).toBase58(),
-	  epochRegistry.publicKey.toBase58(),
+	  epochRegistry.toBase58(),
 	);
 	assert.strictEqual(
 	  eventField<number>(data, "governanceMode", "governance_mode"),
@@ -341,7 +342,7 @@ describe("physis_eligibility_registry events", () => {
 
 	const signature = await program.methods
 	  .disableEligibilityClass(CLASS_ID_PRIVE_MEMBER)
-	  .accounts({
+	  .accountsStrict({
 		authority: provider.wallet.publicKey,
 		registry,
 		eligibilityClass,
@@ -448,7 +449,7 @@ describe("physis_eligibility_registry events", () => {
 		SUBJECT_KIND_WALLET,
 		subjectKey,
 	  )
-	  .accounts({
+	  .accountsStrict({
 		authority: provider.wallet.publicKey,
 		registry,
 		eligibilityClass,
@@ -493,7 +494,7 @@ describe("physis_eligibility_registry events", () => {
 		SUBJECT_KIND_WALLET,
 		subjectKey,
 	  )
-	  .accounts({
+	  .accountsStrict({
 		authority: provider.wallet.publicKey,
 		registry,
 		eligibilityClass,
@@ -530,7 +531,7 @@ describe("physis_eligibility_registry events", () => {
 
 	const signature = await program.methods
 	  .pauseRegistry()
-	  .accounts({
+	  .accountsStrict({
 		authority: provider.wallet.publicKey,
 		registry,
 	  })
@@ -553,7 +554,7 @@ describe("physis_eligibility_registry events", () => {
 
 	await program.methods
 	  .pauseRegistry()
-	  .accounts({
+	  .accountsStrict({
 		authority: provider.wallet.publicKey,
 		registry,
 	  })
@@ -561,7 +562,7 @@ describe("physis_eligibility_registry events", () => {
 
 	const signature = await program.methods
 	  .resumeRegistry()
-	  .accounts({
+	  .accountsStrict({
 		authority: provider.wallet.publicKey,
 		registry,
 	  })
@@ -585,7 +586,7 @@ describe("physis_eligibility_registry events", () => {
 
 	const signature = await program.methods
 	  .transferRegistryAuthority(newAuthority.publicKey)
-	  .accounts({
+	  .accountsStrict({
 		authority: provider.wallet.publicKey,
 		registry,
 	  })

@@ -1,5 +1,5 @@
 import * as anchor from "@anchor-lang/core";
-import { Program } from "@anchor-lang/core";
+import { getEligibilityProgram } from "./helpers/eligibility-program.ts";
 import { Keypair, PublicKey, SystemProgram } from "@solana/web3.js";
 import assert from "assert";
 
@@ -21,6 +21,7 @@ import {
 } from "./helpers/eligibility-constants.ts";
 
 import {
+  findCanonicalEpochRegistryPda,
   findEligibilityClassPda,
   findEligibilityRecordPda,
   findEligibilityRegistryPda,
@@ -30,7 +31,7 @@ describe("physis_eligibility_registry record transitions", () => {
   const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
 
-  const program = anchor.workspace.PhysisEligibilityRegistry as Program;
+  const program = getEligibilityProgram();
 
   assert.strictEqual(program.programId.toBase58(), ELIGIBILITY_PROGRAM_ID);
 
@@ -65,7 +66,7 @@ describe("physis_eligibility_registry record transitions", () => {
 
   async function createFixture(recordStatus = RECORD_STATUS_ACTIVE) {
 	const realm = Keypair.generate();
-	const epochRegistry = Keypair.generate();
+	const epochRegistry = findCanonicalEpochRegistryPda(realm.publicKey);
 
 	const { pda: registry } = findEligibilityRegistryPda(
 	  program.programId,
@@ -74,11 +75,11 @@ describe("physis_eligibility_registry record transitions", () => {
 
 	await program.methods
 	  .initializeRegistry(GOVERNANCE_MODE_PRIVE_ONLY)
-	  .accounts({
+	  .accountsStrict({
 		payer: provider.wallet.publicKey,
 		authority: provider.wallet.publicKey,
 		realm: realm.publicKey,
-		epochRegistry: epochRegistry.publicKey,
+		epochRegistry,
 		registry,
 		systemProgram: SystemProgram.programId,
 	  })
@@ -105,7 +106,7 @@ describe("physis_eligibility_registry record transitions", () => {
 		0,
 		0,
 	  )
-	  .accounts({
+	  .accountsStrict({
 		payer: provider.wallet.publicKey,
 		authority: provider.wallet.publicKey,
 		registry,
@@ -138,7 +139,7 @@ describe("physis_eligibility_registry record transitions", () => {
 		0,
 		0,
 	  )
-	  .accounts({
+	  .accountsStrict({
 		payer: provider.wallet.publicKey,
 		authority: provider.wallet.publicKey,
 		registry,
@@ -168,7 +169,7 @@ describe("physis_eligibility_registry record transitions", () => {
 		SUBJECT_KIND_WALLET,
 		fixture.subjectKey,
 	  )
-	  .accounts({
+	  .accountsStrict({
 		authority: provider.wallet.publicKey,
 		registry: fixture.registry,
 		eligibilityClass: fixture.eligibilityClass,
@@ -189,7 +190,7 @@ describe("physis_eligibility_registry record transitions", () => {
 		SUBJECT_KIND_WALLET,
 		fixture.subjectKey,
 	  )
-	  .accounts({
+	  .accountsStrict({
 		authority: provider.wallet.publicKey,
 		registry: fixture.registry,
 		eligibilityClass: fixture.eligibilityClass,

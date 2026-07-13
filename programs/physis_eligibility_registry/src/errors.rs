@@ -68,6 +68,9 @@ pub enum EligibilityError {
     #[msg("Eligibility class status and enabled state are inconsistent")]
     InvalidClassState,
 
+    #[msg("Epoch registry is not the canonical Program 1 registry for this Realm")]
+    InvalidEpochRegistry,
+
     #[msg("Math overflow")]
     MathOverflow,
 }

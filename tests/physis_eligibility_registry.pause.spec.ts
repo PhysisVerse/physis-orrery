@@ -1,5 +1,5 @@
 import * as anchor from "@anchor-lang/core";
-import { Program } from "@anchor-lang/core";
+import { getEligibilityProgram } from "./helpers/eligibility-program.ts";
 import { Keypair, PublicKey, SystemProgram } from "@solana/web3.js";
 import assert from "assert";
 
@@ -19,6 +19,7 @@ import {
 } from "./helpers/eligibility-constants.ts";
 
 import {
+  findCanonicalEpochRegistryPda,
   findEligibilityClassPda,
   findEligibilityRecordPda,
   findEligibilityRegistryPda,
@@ -28,7 +29,7 @@ describe("physis_eligibility_registry pause controls", () => {
   const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
 
-  const program = anchor.workspace.PhysisEligibilityRegistry as Program;
+  const program = getEligibilityProgram();
 
   assert.strictEqual(program.programId.toBase58(), ELIGIBILITY_PROGRAM_ID);
 
@@ -63,7 +64,7 @@ describe("physis_eligibility_registry pause controls", () => {
 
   async function initializeRegistry() {
 	const realm = Keypair.generate();
-	const epochRegistry = Keypair.generate();
+	const epochRegistry = findCanonicalEpochRegistryPda(realm.publicKey);
 
 	const { pda: registry } = findEligibilityRegistryPda(
 	  program.programId,
@@ -72,11 +73,11 @@ describe("physis_eligibility_registry pause controls", () => {
 
 	await program.methods
 	  .initializeRegistry(GOVERNANCE_MODE_PRIVE_ONLY)
-	  .accounts({
+	  .accountsStrict({
 		payer: provider.wallet.publicKey,
 		authority: provider.wallet.publicKey,
 		realm: realm.publicKey,
-		epochRegistry: epochRegistry.publicKey,
+		epochRegistry,
 		registry,
 		systemProgram: SystemProgram.programId,
 	  })
@@ -109,7 +110,7 @@ describe("physis_eligibility_registry pause controls", () => {
 		0,
 		0,
 	  )
-	  .accounts({
+	  .accountsStrict({
 		payer: provider.wallet.publicKey,
 		authority: provider.wallet.publicKey,
 		registry,
@@ -151,7 +152,7 @@ describe("physis_eligibility_registry pause controls", () => {
 		0,
 		0,
 	  )
-	  .accounts({
+	  .accountsStrict({
 		payer: provider.wallet.publicKey,
 		authority: provider.wallet.publicKey,
 		registry,
@@ -172,7 +173,7 @@ describe("physis_eligibility_registry pause controls", () => {
 	registry: PublicKey,
 	authority?: Keypair,
   ): Promise<void> {
-	const builder = program.methods.pauseRegistry().accounts({
+	const builder = program.methods.pauseRegistry().accountsStrict({
 	  authority: authority?.publicKey ?? provider.wallet.publicKey,
 	  registry,
 	});
@@ -188,7 +189,7 @@ describe("physis_eligibility_registry pause controls", () => {
 	registry: PublicKey,
 	authority?: Keypair,
   ): Promise<void> {
-	const builder = program.methods.resumeRegistry().accounts({
+	const builder = program.methods.resumeRegistry().accountsStrict({
 	  authority: authority?.publicKey ?? provider.wallet.publicKey,
 	  registry,
 	});
@@ -206,7 +207,7 @@ describe("physis_eligibility_registry pause controls", () => {
   ): Promise<void> {
 	await program.methods
 	  .disableEligibilityClass(CLASS_ID_PRIVE_MEMBER)
-	  .accounts({
+	  .accountsStrict({
 		authority: provider.wallet.publicKey,
 		registry,
 		eligibilityClass,
@@ -226,7 +227,7 @@ describe("physis_eligibility_registry pause controls", () => {
 		SUBJECT_KIND_WALLET,
 		params.subjectKey,
 	  )
-	  .accounts({
+	  .accountsStrict({
 		authority: provider.wallet.publicKey,
 		registry: params.registry,
 		eligibilityClass: params.eligibilityClass,
@@ -247,7 +248,7 @@ describe("physis_eligibility_registry pause controls", () => {
 		SUBJECT_KIND_WALLET,
 		params.subjectKey,
 	  )
-	  .accounts({
+	  .accountsStrict({
 		authority: provider.wallet.publicKey,
 		registry: params.registry,
 		eligibilityClass: params.eligibilityClass,

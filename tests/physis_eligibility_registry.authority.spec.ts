@@ -1,5 +1,5 @@
 import * as anchor from "@anchor-lang/core";
-import { Program } from "@anchor-lang/core";
+import { getEligibilityProgram } from "./helpers/eligibility-program.ts";
 import { Keypair, PublicKey, SystemProgram } from "@solana/web3.js";
 import assert from "assert";
 
@@ -16,13 +16,14 @@ import {
 import {
   findEligibilityClassPda,
   findEligibilityRegistryPda,
+  findCanonicalEpochRegistryPda,
 } from "./helpers/eligibility-pdas.ts";
 
 describe("physis_eligibility_registry authority transfer", () => {
   const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
 
-  const program = anchor.workspace.PhysisEligibilityRegistry as Program;
+  const program = getEligibilityProgram();
 
   assert.strictEqual(program.programId.toBase58(), ELIGIBILITY_PROGRAM_ID);
 
@@ -49,7 +50,7 @@ describe("physis_eligibility_registry authority transfer", () => {
 
   async function initializeRegistry() {
 	const realm = Keypair.generate();
-	const epochRegistry = Keypair.generate();
+	const epochRegistry = findCanonicalEpochRegistryPda(realm.publicKey);
 
 	const { pda: registry } = findEligibilityRegistryPda(
 	  program.programId,
@@ -58,11 +59,11 @@ describe("physis_eligibility_registry authority transfer", () => {
 
 	await program.methods
 	  .initializeRegistry(GOVERNANCE_MODE_PRIVE_ONLY)
-	  .accounts({
+	  .accountsStrict({
 		payer: provider.wallet.publicKey,
 		authority: provider.wallet.publicKey,
 		realm: realm.publicKey,
-		epochRegistry: epochRegistry.publicKey,
+		epochRegistry,
 		registry,
 		systemProgram: SystemProgram.programId,
 	  })
@@ -80,7 +81,7 @@ describe("physis_eligibility_registry authority transfer", () => {
   }): Promise<void> {
 	const builder = program.methods
 	  .transferRegistryAuthority(params.newAuthority)
-	  .accounts({
+	  .accountsStrict({
 		authority:
 		  params.currentAuthority?.publicKey ?? provider.wallet.publicKey,
 		registry: params.registry,
@@ -118,7 +119,7 @@ describe("physis_eligibility_registry authority transfer", () => {
 		0,
 		0,
 	  )
-	  .accounts({
+	  .accountsStrict({
 		payer: provider.wallet.publicKey,
 		authority: params.authority?.publicKey ?? provider.wallet.publicKey,
 		registry: params.registry,
@@ -138,7 +139,7 @@ describe("physis_eligibility_registry authority transfer", () => {
   async function pauseRegistry(registry: PublicKey): Promise<void> {
 	await program.methods
 	  .pauseRegistry()
-	  .accounts({
+	  .accountsStrict({
 		authority: provider.wallet.publicKey,
 		registry,
 	  })
@@ -261,7 +262,7 @@ describe("physis_eligibility_registry authority transfer", () => {
 
 	await program.methods
 	  .resumeRegistry()
-	  .accounts({
+	  .accountsStrict({
 		authority: newAuthority.publicKey,
 		registry,
 	  })

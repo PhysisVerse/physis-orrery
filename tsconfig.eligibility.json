@@ -1,0 +1,8 @@
+{
+  "extends": "./tsconfig.json",
+  "include": [
+    "tests/physis_eligibility_registry*.spec.ts",
+    "tests/helpers/**/*.ts",
+    "packages/idl-types/physis_eligibility_registry.ts"
+  ]
+}
