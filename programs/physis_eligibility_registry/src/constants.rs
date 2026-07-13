@@ -11,7 +11,6 @@ pub const METADATA_HASH_BYTES: usize = 32;
 pub const RESERVED_BYTES: usize = 128;
 
 pub const SEED_PREFIX: &[u8] = b"physis";
-
 pub const SEED_EPOCH_REGISTRY: &[u8] = b"epoch-registry";
 pub const SEED_ELIGIBILITY_REGISTRY: &[u8] = b"eligibility-registry";
 pub const SEED_ELIGIBILITY_CLASS: &[u8] = b"eligibility-class";
@@ -34,6 +33,9 @@ pub const CLASS_ID_FOUNDRY_CONTRIBUTOR_RESERVED: u32 = 20;
 pub const CLASS_ID_ASTRALIS_OPERATOR_PRECHECK_RESERVED: u32 = 40;
 
 pub const SUBJECT_KIND_WALLET: u8 = 1;
+
+// Reserved future subject kinds.
+// Program 2 v1 records remain wallet-addressed.
 pub const SUBJECT_KIND_PERSONA_HASH: u8 = 2;
 pub const SUBJECT_KIND_EXTERNAL_ATTESTATION: u8 = 3;
 
@@ -59,7 +61,9 @@ pub const RECORD_STATUS_SUSPENDED: u8 = 2;
 pub const RECORD_STATUS_REVOKED: u8 = 3;
 pub const RECORD_STATUS_EXPIRED: u8 = 4;
 
+// Reserved sentinel. This value cannot be written to a live v1 record.
 pub const ELIGIBILITY_SOURCE_UNKNOWN: u8 = 0;
+
 pub const ELIGIBILITY_SOURCE_DAO_APPROVED: u8 = 1;
 pub const ELIGIBILITY_SOURCE_PRIVE_COLLECTION_VERIFIED: u8 = 2;
 pub const ELIGIBILITY_SOURCE_PERSONA_ATTESTATION: u8 = 3;
@@ -104,25 +108,36 @@ pub fn is_valid_class_state(status: u8, enabled: bool) -> bool {
     )
 }
 
-pub fn is_valid_record_status(status: u8) -> bool {
-    matches!(
-        status,
-        RECORD_STATUS_PENDING
-            | RECORD_STATUS_ACTIVE
-            | RECORD_STATUS_SUSPENDED
-            | RECORD_STATUS_REVOKED
-            | RECORD_STATUS_EXPIRED
-    )
+// Direct upsert is limited to constructive states.
+// Suspension and revocation must use their dedicated instructions.
+pub fn is_valid_record_upsert_status(status: u8) -> bool {
+    matches!(status, RECORD_STATUS_PENDING | RECORD_STATUS_ACTIVE)
 }
 
 pub fn is_valid_eligibility_source(source: u8) -> bool {
     matches!(
         source,
-        ELIGIBILITY_SOURCE_UNKNOWN
-            | ELIGIBILITY_SOURCE_DAO_APPROVED
+        ELIGIBILITY_SOURCE_DAO_APPROVED
             | ELIGIBILITY_SOURCE_PRIVE_COLLECTION_VERIFIED
             | ELIGIBILITY_SOURCE_PERSONA_ATTESTATION
             | ELIGIBILITY_SOURCE_MANUAL_COUNCIL
+    )
+}
+
+pub fn is_valid_class_source(class_id: u32, class_kind: u8, source: u8) -> bool {
+    matches!(
+        (class_id, class_kind, source),
+        (
+            CLASS_ID_PRIVE_MEMBER,
+            CLASS_KIND_PRIVE_MEMBER,
+            ELIGIBILITY_SOURCE_DAO_APPROVED
+                | ELIGIBILITY_SOURCE_PRIVE_COLLECTION_VERIFIED
+                | ELIGIBILITY_SOURCE_MANUAL_COUNCIL
+        ) | (
+            CLASS_ID_PERSONA_VERIFIED,
+            CLASS_KIND_PERSONA_VERIFIED,
+            ELIGIBILITY_SOURCE_PERSONA_ATTESTATION
+        )
     )
 }
 

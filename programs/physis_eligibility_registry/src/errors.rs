@@ -73,4 +73,7 @@ pub enum EligibilityError {
 
     #[msg("Math overflow")]
     MathOverflow,
+
+    #[msg("Eligibility source is not permitted for this eligibility class")]
+    EligibilitySourceClassMismatch,
 }

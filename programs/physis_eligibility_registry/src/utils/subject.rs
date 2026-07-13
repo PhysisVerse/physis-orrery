@@ -5,9 +5,7 @@ use crate::errors::EligibilityError;
 
 pub fn validate_subject(subject_kind: u8, subject_key: &[u8; SUBJECT_KEY_BYTES]) -> Result<()> {
     require!(
-        subject_kind == SUBJECT_KIND_WALLET
-            || subject_kind == SUBJECT_KIND_PERSONA_HASH
-            || subject_kind == SUBJECT_KIND_EXTERNAL_ATTESTATION,
+        subject_kind == SUBJECT_KIND_WALLET,
         EligibilityError::InvalidSubjectKind
     );
 

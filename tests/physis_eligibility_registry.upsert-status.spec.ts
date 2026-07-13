@@ -1,18 +1,22 @@
 import * as anchor from "@anchor-lang/core";
-import { Keypair, PublicKey, SystemProgram } from "@solana/web3.js";
+import {
+  Keypair,
+  PublicKey,
+  SystemProgram,
+} from "@solana/web3.js";
 import assert from "assert";
 
 import {
   CLASS_ID_PRIVE_MEMBER,
   CLASS_KIND_PRIVE_MEMBER,
   CLASS_STATUS_ACTIVE,
-  ELIGIBILITY_PROGRAM_ID,
   ELIGIBILITY_SOURCE_PRIVE_COLLECTION_VERIFIED,
   GOVERNANCE_MODE_PRIVE_ONLY,
   LABEL_BYTES,
   METADATA_HASH_BYTES,
   NAME_BYTES,
   RECORD_STATUS_ACTIVE,
+  RECORD_STATUS_EXPIRED,
   RECORD_STATUS_PENDING,
   RECORD_STATUS_REVOKED,
   RECORD_STATUS_SUSPENDED,
@@ -30,16 +34,11 @@ import {
   getEligibilityProgram,
 } from "./helpers/eligibility-program.ts";
 
-describe("physis_eligibility_registry record transitions", () => {
+describe("physis_eligibility_registry upsert status policy", () => {
   const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
 
   const program = getEligibilityProgram();
-
-  assert.strictEqual(
-	program.programId.toBase58(),
-	ELIGIBILITY_PROGRAM_ID,
-  );
 
   function fixedBytes(
 	value: string,
@@ -58,28 +57,41 @@ describe("physis_eligibility_registry record transitions", () => {
 	return Array.from(pubkey.toBytes());
   }
 
-  async function expectRejects(
+  async function expectAnchorError(
 	promiseFactory: () => Promise<unknown>,
-	label: string,
+	expectedCode: string,
   ): Promise<void> {
-	let rejected = false;
-
 	try {
 	  await promiseFactory();
-	} catch {
-	  rejected = true;
+	} catch (error: unknown) {
+	  const code = (
+		error as {
+		  error?: {
+			errorCode?: {
+			  code?: string;
+			};
+		  };
+		}
+	  ).error?.errorCode?.code;
+
+	  assert.strictEqual(
+		code,
+		expectedCode,
+		`Expected Anchor error ${expectedCode}, received ${code}`,
+	  );
+
+	  return;
 	}
 
-	assert.strictEqual(
-	  rejected,
-	  true,
-	  `Expected rejection: ${label}`,
+	assert.fail(
+	  `Expected Anchor error ${expectedCode}, but transaction succeeded`,
 	);
   }
 
-  async function createFixture(
-	recordStatus = RECORD_STATUS_ACTIVE,
-  ) {
+  async function createFixture(): Promise<{
+	registry: PublicKey;
+	eligibilityClass: PublicKey;
+  }> {
 	const realm = Keypair.generate();
 
 	const epochRegistry =
@@ -134,13 +146,26 @@ describe("physis_eligibility_registry record transitions", () => {
 	  })
 	  .rpc();
 
+	return {
+	  registry,
+	  eligibilityClass,
+	};
+  }
+
+  async function upsertWithStatus(
+	fixture: {
+	  registry: PublicKey;
+	  eligibilityClass: PublicKey;
+	},
+	status: number,
+  ): Promise<PublicKey> {
 	const wallet = Keypair.generate().publicKey;
 	const subjectKey = pubkeyBytes(wallet);
 
 	const { pda: eligibilityRecord } =
 	  findEligibilityRecordPda(
 		program.programId,
-		registry,
+		fixture.registry,
 		SUBJECT_KIND_WALLET,
 		subjectKey,
 		CLASS_ID_PRIVE_MEMBER,
@@ -152,7 +177,7 @@ describe("physis_eligibility_registry record transitions", () => {
 		SUBJECT_KIND_WALLET,
 		subjectKey,
 		wallet,
-		recordStatus,
+		status,
 		ELIGIBILITY_SOURCE_PRIVE_COLLECTION_VERIFIED,
 		provider.wallet.publicKey,
 		zeroBytes(METADATA_HASH_BYTES),
@@ -162,148 +187,90 @@ describe("physis_eligibility_registry record transitions", () => {
 	  .accountsStrict({
 		payer: provider.wallet.publicKey,
 		authority: provider.wallet.publicKey,
-		registry,
-		eligibilityClass,
+		registry: fixture.registry,
+		eligibilityClass: fixture.eligibilityClass,
 		eligibilityRecord,
 		systemProgram: SystemProgram.programId,
 	  })
 	  .rpc();
 
-	return {
-	  registry,
-	  eligibilityClass,
-	  eligibilityRecord,
-	  subjectKey,
-	};
+	return eligibilityRecord;
   }
 
-  async function suspendRecord(fixture: {
-	registry: PublicKey;
-	eligibilityClass: PublicKey;
-	eligibilityRecord: PublicKey;
-	subjectKey: number[];
-  }): Promise<void> {
-	await program.methods
-	  .suspendEligibilityRecord(
-		CLASS_ID_PRIVE_MEMBER,
-		SUBJECT_KIND_WALLET,
-		fixture.subjectKey,
-	  )
-	  .accountsStrict({
-		authority: provider.wallet.publicKey,
-		registry: fixture.registry,
-		eligibilityClass: fixture.eligibilityClass,
-		eligibilityRecord: fixture.eligibilityRecord,
-	  })
-	  .rpc();
-  }
-
-  async function revokeRecord(fixture: {
-	registry: PublicKey;
-	eligibilityClass: PublicKey;
-	eligibilityRecord: PublicKey;
-	subjectKey: number[];
-  }): Promise<void> {
-	await program.methods
-	  .revokeEligibilityRecord(
-		CLASS_ID_PRIVE_MEMBER,
-		SUBJECT_KIND_WALLET,
-		fixture.subjectKey,
-	  )
-	  .accountsStrict({
-		authority: provider.wallet.publicKey,
-		registry: fixture.registry,
-		eligibilityClass: fixture.eligibilityClass,
-		eligibilityRecord: fixture.eligibilityRecord,
-	  })
-	  .rpc();
-  }
-
-  it("rejects suspending an already suspended record", async () => {
+  it("accepts ACTIVE through record upsert", async () => {
 	const fixture = await createFixture();
 
-	await suspendRecord(fixture);
-
-	await expectRejects(
-	  () => suspendRecord(fixture),
-	  "already suspended record cannot be suspended again",
-	);
-  });
-
-  it("rejects suspending a revoked record", async () => {
-	const fixture = await createFixture();
-
-	await revokeRecord(fixture);
-
-	await expectRejects(
-	  () => suspendRecord(fixture),
-	  "revoked record cannot become suspended",
+	const eligibilityRecord = await upsertWithStatus(
+	  fixture,
+	  RECORD_STATUS_ACTIVE,
 	);
 
 	const account =
 	  await program.account.eligibilityRecord.fetch(
-		fixture.eligibilityRecord,
+		eligibilityRecord,
 	  );
 
 	assert.strictEqual(
 	  account.status,
-	  RECORD_STATUS_REVOKED,
+	  RECORD_STATUS_ACTIVE,
 	);
   });
 
-  it("allows suspending a pending record", async () => {
-	const fixture = await createFixture(
+  it("accepts PENDING through record upsert", async () => {
+	const fixture = await createFixture();
+
+	const eligibilityRecord = await upsertWithStatus(
+	  fixture,
 	  RECORD_STATUS_PENDING,
 	);
 
-	await suspendRecord(fixture);
-
 	const account =
 	  await program.account.eligibilityRecord.fetch(
-		fixture.eligibilityRecord,
+		eligibilityRecord,
 	  );
 
 	assert.strictEqual(
 	  account.status,
-	  RECORD_STATUS_SUSPENDED,
+	  RECORD_STATUS_PENDING,
 	);
   });
 
-  it("allows revoking a suspended record", async () => {
+  it("rejects SUSPENDED through record upsert", async () => {
 	const fixture = await createFixture();
 
-	await suspendRecord(fixture);
-	await revokeRecord(fixture);
-
-	const account =
-	  await program.account.eligibilityRecord.fetch(
-		fixture.eligibilityRecord,
-	  );
-
-	assert.strictEqual(
-	  account.status,
-	  RECORD_STATUS_REVOKED,
+	await expectAnchorError(
+	  () =>
+		upsertWithStatus(
+		  fixture,
+		  RECORD_STATUS_SUSPENDED,
+		),
+	  "InvalidRecordStatus",
 	);
   });
 
-  it("rejects revoking an already revoked record", async () => {
+  it("rejects REVOKED through record upsert", async () => {
 	const fixture = await createFixture();
 
-	await revokeRecord(fixture);
-
-	await expectRejects(
-	  () => revokeRecord(fixture),
-	  "already revoked record cannot be revoked again",
+	await expectAnchorError(
+	  () =>
+		upsertWithStatus(
+		  fixture,
+		  RECORD_STATUS_REVOKED,
+		),
+	  "InvalidRecordStatus",
 	);
+  });
 
-	const account =
-	  await program.account.eligibilityRecord.fetch(
-		fixture.eligibilityRecord,
-	  );
+  it("rejects EXPIRED through record upsert", async () => {
+	const fixture = await createFixture();
 
-	assert.strictEqual(
-	  account.status,
-	  RECORD_STATUS_REVOKED,
+	await expectAnchorError(
+	  () =>
+		upsertWithStatus(
+		  fixture,
+		  RECORD_STATUS_EXPIRED,
+		),
+	  "InvalidRecordStatus",
 	);
   });
 });

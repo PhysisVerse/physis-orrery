@@ -20,15 +20,21 @@ pub struct UpsertEligibilityRecord<'info> {
 
     #[account(
         mut,
-        constraint = !registry.paused @ EligibilityError::RegistryPaused,
-        constraint = registry.authority == authority.key() @ EligibilityError::InvalidAuthority
+        constraint = !registry.paused
+            @ EligibilityError::RegistryPaused,
+        constraint = registry.authority == authority.key()
+            @ EligibilityError::InvalidAuthority
     )]
     pub registry: Account<'info, EligibilityRegistry>,
 
     #[account(
-        constraint = eligibility_class.registry == registry.key() @ EligibilityError::ClassRegistryMismatch,
-        constraint = eligibility_class.class_id == class_id @ EligibilityError::InvalidClassId,
-        constraint = eligibility_class.enabled && eligibility_class.status == CLASS_STATUS_ACTIVE @ EligibilityError::EligibilityClassDisabled
+        constraint = eligibility_class.registry == registry.key()
+            @ EligibilityError::ClassRegistryMismatch,
+        constraint = eligibility_class.class_id == class_id
+            @ EligibilityError::InvalidClassId,
+        constraint = eligibility_class.enabled
+            && eligibility_class.status == CLASS_STATUS_ACTIVE
+            @ EligibilityError::EligibilityClassDisabled
     )]
     pub eligibility_class: Account<'info, EligibilityClass>,
 
@@ -66,10 +72,11 @@ pub fn process_upsert_eligibility_record(
     valid_until_epoch_id: u32,
 ) -> Result<()> {
     require!(class_id != 0, EligibilityError::InvalidClassId);
+
     validate_subject(subject_kind, &subject_key)?;
 
     require!(
-        is_valid_record_status(status),
+        is_valid_record_upsert_status(status),
         EligibilityError::InvalidRecordStatus
     );
 
@@ -79,16 +86,23 @@ pub fn process_upsert_eligibility_record(
     );
 
     require!(
-        is_valid_epoch_window(valid_from_epoch_id, valid_until_epoch_id),
+        is_valid_class_source(
+            ctx.accounts.eligibility_class.class_id,
+            ctx.accounts.eligibility_class.kind,
+            source,
+        ),
+        EligibilityError::EligibilitySourceClassMismatch
+    );
+
+    require!(
+        is_valid_epoch_window(valid_from_epoch_id, valid_until_epoch_id,),
         EligibilityError::InvalidEpochWindow
     );
 
-    if subject_kind == SUBJECT_KIND_WALLET {
-        require!(
-            subject_key == wallet.to_bytes(),
-            EligibilityError::WalletSubjectMismatch
-        );
-    }
+    require!(
+        subject_key == wallet.to_bytes(),
+        EligibilityError::WalletSubjectMismatch
+    );
 
     let clock = Clock::get()?;
 
@@ -108,15 +122,18 @@ pub fn process_upsert_eligibility_record(
             registry_key,
             EligibilityError::RecordRegistryMismatch
         );
+
         require_keys_eq!(
             eligibility_record.eligibility_class,
             eligibility_class_key,
             EligibilityError::RecordClassMismatch
         );
+
         require!(
             eligibility_record.class_id == class_id,
             EligibilityError::InvalidClassId
         );
+
         require!(
             eligibility_record.subject_kind == subject_kind
                 && eligibility_record.subject_key == subject_key,
