@@ -169,4 +169,7 @@ pub enum EligibilityError {
 
     #[msg("Delegated record transition is not permitted")]
     DelegatedRecordTransitionNotAllowed,
+
+    #[msg("Root-authority record transition is not permitted")]
+    RootRecordTransitionNotAllowed,
 }

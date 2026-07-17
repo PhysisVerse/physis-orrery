@@ -770,6 +770,97 @@ export type PhysisEligibilityRegistry = {
       ]
     },
     {
+      "name": "upsertEligibilityRecordByAuthority",
+      "discriminator": [
+        6,
+        100,
+        208,
+        209,
+        12,
+        51,
+        142,
+        147
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "authority",
+          "signer": true
+        },
+        {
+          "name": "registry",
+          "writable": true
+        },
+        {
+          "name": "eligibilityClass"
+        },
+        {
+          "name": "eligibilityRecord",
+          "writable": true
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "classId",
+          "type": "u32"
+        },
+        {
+          "name": "subjectKind",
+          "type": "u8"
+        },
+        {
+          "name": "subjectKey",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "wallet",
+          "type": "pubkey"
+        },
+        {
+          "name": "status",
+          "type": "u8"
+        },
+        {
+          "name": "source",
+          "type": "u8"
+        },
+        {
+          "name": "metadataHash",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "validFromEpochId",
+          "type": "u32"
+        },
+        {
+          "name": "validUntilEpochId",
+          "type": "u32"
+        },
+        {
+          "name": "evidenceExpiresAt",
+          "type": "i64"
+        }
+      ]
+    },
+    {
       "name": "upsertEligibilityRecordByIssuer",
       "discriminator": [
         118,
@@ -1508,6 +1599,11 @@ export type PhysisEligibilityRegistry = {
       "code": 6055,
       "name": "delegatedRecordTransitionNotAllowed",
       "msg": "Delegated record transition is not permitted"
+    },
+    {
+      "code": 6056,
+      "name": "rootRecordTransitionNotAllowed",
+      "msg": "Root-authority record transition is not permitted"
     }
   ],
   "types": [

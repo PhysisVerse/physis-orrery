@@ -138,6 +138,35 @@ pub mod physis_eligibility_registry {
     }
 
     #[allow(clippy::too_many_arguments)]
+    pub fn upsert_eligibility_record_by_authority(
+        ctx: Context<UpsertEligibilityRecordByAuthority>,
+        class_id: u32,
+        subject_kind: u8,
+        subject_key: [u8; constants::SUBJECT_KEY_BYTES],
+        wallet: Pubkey,
+        status: u8,
+        source: u8,
+        metadata_hash: [u8; constants::METADATA_HASH_BYTES],
+        valid_from_epoch_id: u32,
+        valid_until_epoch_id: u32,
+        evidence_expires_at: i64,
+    ) -> Result<()> {
+        process_upsert_eligibility_record_by_authority(
+            ctx,
+            class_id,
+            subject_kind,
+            subject_key,
+            wallet,
+            status,
+            source,
+            metadata_hash,
+            valid_from_epoch_id,
+            valid_until_epoch_id,
+            evidence_expires_at,
+        )
+    }
+
+    #[allow(clippy::too_many_arguments)]
     pub fn upsert_eligibility_record_by_issuer(
         ctx: Context<UpsertEligibilityRecordByIssuer>,
         class_id: u32,
