@@ -71,6 +71,21 @@ pub enum EligibilityError {
     #[msg("Epoch registry is not the canonical Program 1 registry for this Realm")]
     InvalidEpochRegistry,
 
+    #[msg("Program 1 Epoch Registry account does not exist or is not initialized")]
+    EpochRegistryNotInitialized,
+
+    #[msg("Program 1 Epoch Registry has an invalid account owner")]
+    InvalidEpochRegistryOwner,
+
+    #[msg("Program 1 Epoch Registry has an invalid account discriminator")]
+    InvalidEpochRegistryDiscriminator,
+
+    #[msg("Program 1 Epoch Registry uses an unsupported version")]
+    InvalidEpochRegistryVersion,
+
+    #[msg("Program 1 Epoch Registry belongs to a different Realm")]
+    EpochRegistryRealmMismatch,
+
     #[msg("Math overflow")]
     MathOverflow,
 

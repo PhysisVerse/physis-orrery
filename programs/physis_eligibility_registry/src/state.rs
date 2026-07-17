@@ -24,7 +24,8 @@ pub struct EligibilityRegistry {
 
 impl EligibilityRegistry {
     pub const LEN: usize =
-        1 + 32 + 32 + 32 + 1 + 1 + 4 + 8 + 8 + 8 + 8 + 8 + 8 + 8 + 1 + RESERVED_BYTES;
+        1 + 32 + 32 + 32 + 1 + 1 + 4 + 8 + 8 + 8 + 8 + 8 + 8 + 8 + 1
+            + RESERVED_BYTES;
 }
 
 #[account]
@@ -100,7 +101,13 @@ pub struct EligibilityRecord {
     pub updated_slot: u64,
     pub updated_solana_epoch: u64,
     pub bump: u8,
-    pub reserved: [u8; RESERVED_BYTES],
+
+    // Version 2 evidence-validity fields.
+    // These consume bytes previously held in `reserved`.
+    pub evidence_issued_at: i64,
+    pub evidence_expires_at: i64,
+
+    pub reserved: [u8; ELIGIBILITY_RECORD_RESERVED_BYTES],
 }
 
 impl EligibilityRecord {
@@ -124,5 +131,7 @@ impl EligibilityRecord {
         + 8
         + 8
         + 1
-        + RESERVED_BYTES;
+        + 8
+        + 8
+        + ELIGIBILITY_RECORD_RESERVED_BYTES;
 }
