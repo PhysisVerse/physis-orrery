@@ -51,6 +51,9 @@ export const
 export const
   ELIGIBILITY_SOURCE_MANUAL_COUNCIL_DEPRECATED = 4;
 
+export const AUTH_KIND_ROOT = 1;
+export const AUTH_KIND_DELEGATED_ISSUER = 2;
+
 export const ISSUER_PERMISSION_CREATE = 1;
 export const ISSUER_PERMISSION_REFRESH = 1 << 1;
 export const ISSUER_PERMISSION_ACTIVATE_PENDING = 1 << 2;

@@ -770,6 +770,146 @@ export type PhysisEligibilityRegistry = {
       ]
     },
     {
+      "name": "upsertEligibilityRecordByIssuer",
+      "discriminator": [
+        118,
+        76,
+        219,
+        188,
+        46,
+        128,
+        71,
+        101
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "issuer",
+          "signer": true
+        },
+        {
+          "name": "registry",
+          "writable": true
+        },
+        {
+          "name": "eligibilityClass"
+        },
+        {
+          "name": "issuerGrant",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  104,
+                  121,
+                  115,
+                  105,
+                  115
+                ]
+              },
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  108,
+                  105,
+                  103,
+                  105,
+                  98,
+                  105,
+                  108,
+                  105,
+                  116,
+                  121,
+                  45,
+                  105,
+                  115,
+                  115,
+                  117,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "registry"
+              },
+              {
+                "kind": "arg",
+                "path": "classId"
+              },
+              {
+                "kind": "account",
+                "path": "issuer"
+              }
+            ]
+          }
+        },
+        {
+          "name": "eligibilityRecord",
+          "writable": true
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "classId",
+          "type": "u32"
+        },
+        {
+          "name": "subjectKind",
+          "type": "u8"
+        },
+        {
+          "name": "subjectKey",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "wallet",
+          "type": "pubkey"
+        },
+        {
+          "name": "status",
+          "type": "u8"
+        },
+        {
+          "name": "metadataHash",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "validFromEpochId",
+          "type": "u32"
+        },
+        {
+          "name": "validUntilEpochId",
+          "type": "u32"
+        },
+        {
+          "name": "evidenceExpiresAt",
+          "type": "i64"
+        }
+      ]
+    },
+    {
       "name": "upsertIssuerGrant",
       "discriminator": [
         149,
@@ -1308,6 +1448,66 @@ export type PhysisEligibilityRegistry = {
       "code": 6043,
       "name": "issuerGrantIssuerMismatch",
       "msg": "Issuer grant belongs to a different issuer"
+    },
+    {
+      "code": 6044,
+      "name": "issuerGrantDisabled",
+      "msg": "Issuer grant is disabled"
+    },
+    {
+      "code": 6045,
+      "name": "issuerGrantNotYetValid",
+      "msg": "Issuer grant is not yet valid"
+    },
+    {
+      "code": 6046,
+      "name": "issuerGrantExpired",
+      "msg": "Issuer grant has expired"
+    },
+    {
+      "code": 6047,
+      "name": "issuerPermissionDenied",
+      "msg": "Issuer grant does not provide the required permission"
+    },
+    {
+      "code": 6048,
+      "name": "invalidEligibilityRecordVersion",
+      "msg": "Eligibility record uses an unsupported version"
+    },
+    {
+      "code": 6049,
+      "name": "invalidMetadataHash",
+      "msg": "Evidence metadata hash cannot be all zeroes"
+    },
+    {
+      "code": 6050,
+      "name": "invalidEvidenceExpiry",
+      "msg": "Evidence expiry must be a future timestamp"
+    },
+    {
+      "code": 6051,
+      "name": "evidenceExpiryExceedsGrantTtl",
+      "msg": "Evidence expiry exceeds the issuer grant TTL"
+    },
+    {
+      "code": 6052,
+      "name": "evidenceExpiryExceedsGrantValidity",
+      "msg": "Evidence expiry exceeds the issuer grant validity window"
+    },
+    {
+      "code": 6053,
+      "name": "delegatedCannotOverwriteDaoOverride",
+      "msg": "Delegated issuers cannot overwrite DAO governance override records"
+    },
+    {
+      "code": 6054,
+      "name": "delegatedRecordSourceMismatch",
+      "msg": "Existing record source does not match the delegated issuer grant"
+    },
+    {
+      "code": 6055,
+      "name": "delegatedRecordTransitionNotAllowed",
+      "msg": "Delegated record transition is not permitted"
     }
   ],
   "types": [
@@ -1764,6 +1964,31 @@ export type PhysisEligibilityRegistry = {
           {
             "name": "source",
             "type": "u8"
+          },
+          {
+            "name": "issuer",
+            "type": "pubkey"
+          },
+          {
+            "name": "authKind",
+            "type": "u8"
+          },
+          {
+            "name": "metadataHash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "evidenceIssuedAt",
+            "type": "i64"
+          },
+          {
+            "name": "evidenceExpiresAt",
+            "type": "i64"
           },
           {
             "name": "validFromEpochId",

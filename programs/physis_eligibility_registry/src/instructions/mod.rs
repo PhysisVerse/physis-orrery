@@ -8,6 +8,7 @@ pub mod suspend_eligibility_record;
 pub mod transfer_registry_authority;
 pub mod upsert_eligibility_class;
 pub mod upsert_eligibility_record;
+pub mod upsert_eligibility_record_by_issuer;
 pub mod upsert_issuer_grant;
 
 pub use disable_eligibility_class::*;
@@ -20,4 +21,5 @@ pub use suspend_eligibility_record::*;
 pub use transfer_registry_authority::*;
 pub use upsert_eligibility_class::*;
 pub use upsert_eligibility_record::*;
+pub use upsert_eligibility_record_by_issuer::*;
 pub use upsert_issuer_grant::*;

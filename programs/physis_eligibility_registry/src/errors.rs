@@ -133,4 +133,40 @@ pub enum EligibilityError {
 
     #[msg("Issuer grant belongs to a different issuer")]
     IssuerGrantIssuerMismatch,
+
+    #[msg("Issuer grant is disabled")]
+    IssuerGrantDisabled,
+
+    #[msg("Issuer grant is not yet valid")]
+    IssuerGrantNotYetValid,
+
+    #[msg("Issuer grant has expired")]
+    IssuerGrantExpired,
+
+    #[msg("Issuer grant does not provide the required permission")]
+    IssuerPermissionDenied,
+
+    #[msg("Eligibility record uses an unsupported version")]
+    InvalidEligibilityRecordVersion,
+
+    #[msg("Evidence metadata hash cannot be all zeroes")]
+    InvalidMetadataHash,
+
+    #[msg("Evidence expiry must be a future timestamp")]
+    InvalidEvidenceExpiry,
+
+    #[msg("Evidence expiry exceeds the issuer grant TTL")]
+    EvidenceExpiryExceedsGrantTtl,
+
+    #[msg("Evidence expiry exceeds the issuer grant validity window")]
+    EvidenceExpiryExceedsGrantValidity,
+
+    #[msg("Delegated issuers cannot overwrite DAO governance override records")]
+    DelegatedCannotOverwriteDaoOverride,
+
+    #[msg("Existing record source does not match the delegated issuer grant")]
+    DelegatedRecordSourceMismatch,
+
+    #[msg("Delegated record transition is not permitted")]
+    DelegatedRecordTransitionNotAllowed,
 }

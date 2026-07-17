@@ -92,6 +92,9 @@ pub const ISSUER_PERMISSION_ACTIVATE_PENDING: u16 = 1 << 2;
 pub const ISSUER_PERMISSION_SUSPEND: u16 = 1 << 3;
 pub const ISSUER_PERMISSION_EXPIRE: u16 = 1 << 4;
 
+pub const AUTH_KIND_ROOT: u8 = 1;
+pub const AUTH_KIND_DELEGATED_ISSUER: u8 = 2;
+
 pub const ISSUER_PERMISSION_ALL: u16 = ISSUER_PERMISSION_CREATE
     | ISSUER_PERMISSION_REFRESH
     | ISSUER_PERMISSION_ACTIVATE_PENDING
@@ -185,6 +188,10 @@ pub fn is_valid_issuer_permissions(permissions: u16) -> bool {
 
 pub fn has_issuer_permission(permissions: u16, permission: u16) -> bool {
     permissions & permission == permission
+}
+
+pub fn is_zero_metadata_hash(metadata_hash: &[u8; METADATA_HASH_BYTES]) -> bool {
+    metadata_hash.iter().all(|byte| *byte == 0)
 }
 
 pub fn is_valid_timestamp_window(valid_from_ts: i64, valid_until_ts: i64) -> bool {
