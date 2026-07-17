@@ -311,37 +311,44 @@ All additional votes derive from qualifying locked PHY.
 
 The bonus function may also be expressed without logarithms.
 
-Let:
+Define the first bonus threshold as:
 
 ```math
-T_1=30{,}000
+T_1 = 30{,}000
 ```
 
-and:
+For every integer \(n \geq 2\), define:
 
 ```math
-T_n=300{,}000\cdot 3^{n-2}
-\qquad \text{for } n\geq2.
+T_n = 300{,}000 \cdot 3^{n-2}
 ```
 
-Then the locked-PHY bonus is:
+When the qualifying locked-PHY amount is below the first threshold:
 
 ```math
-B(L)=
-\left\{
-\begin{array}{ll}
-0,
-& L<T_1,\\[6pt]
-\displaystyle
-\max\left\{
-n\in\mathbb{Z}_{\geq 1}
-\;\middle|\;
-L\geq T_n
-\right\},
-& L\geq T_1.
-\end{array}
-\right.
+L < T_1
 ```
+
+the locked-PHY bonus is:
+
+```math
+B(L) = 0
+```
+
+When the qualifying locked-PHY amount reaches or exceeds the first threshold:
+
+```math
+L \geq T_1
+```
+
+the locked-PHY bonus is:
+
+```math
+B(L) =
+\max \{\, n \in \mathbb{Z}_{\geq 1} \mid L \geq T_n \,\}
+```
+
+In plain language, \(B(L)\) is the highest numbered threshold reached by the wallet’s qualifying locked-PHY amount.
 
 This threshold definition corresponds directly to the intended integer-only Rust implementation.
 
