@@ -311,28 +311,36 @@ All additional votes derive from qualifying locked PHY.
 
 The bonus function may also be expressed without logarithms.
 
-Define the threshold sequence:
+Let:
 
 ```math
-T_n=
-\begin{cases}
-30{,}000, & n=1,\\[6pt]
-300{,}000\cdot 3^{n-2}, & n\geq 2.
-\end{cases}
+T_1=30{,}000
+```
+
+and:
+
+```math
+T_n=300{,}000\cdot 3^{n-2}
+\qquad \text{for } n\geq2.
 ```
 
 Then the locked-PHY bonus is:
 
 ```math
 B(L)=
-\begin{cases}
-0, & L<T_1,\\[6pt]
+\left\{
+\begin{array}{ll}
+0,
+& L<T_1,\\[6pt]
+\displaystyle
 \max\left\{
-n\in\mathbb{N}_{\geq 1}
+n\in\mathbb{Z}_{\geq 1}
 \;\middle|\;
 L\geq T_n
-\right\}, & L\geq T_1.
-\end{cases}
+\right\},
+& L\geq T_1.
+\end{array}
+\right.
 ```
 
 This threshold definition corresponds directly to the intended integer-only Rust implementation.
