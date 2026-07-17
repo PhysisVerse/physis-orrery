@@ -12,10 +12,10 @@ import {
   CLASS_KIND_PERSONA_VERIFIED,
   CLASS_KIND_PRIVE_MEMBER,
   CLASS_STATUS_ACTIVE,
-  ELIGIBILITY_SOURCE_DAO_APPROVED,
-  ELIGIBILITY_SOURCE_MANUAL_COUNCIL,
+  ELIGIBILITY_SOURCE_DAO_GOVERNANCE_OVERRIDE,
+  ELIGIBILITY_SOURCE_MANUAL_COUNCIL_DEPRECATED,
   ELIGIBILITY_SOURCE_PERSONA_ATTESTATION,
-  ELIGIBILITY_SOURCE_PRIVE_COLLECTION_VERIFIED,
+  ELIGIBILITY_SOURCE_PRIVE_COLLECTION_ATTESTATION,
   ELIGIBILITY_SOURCE_UNKNOWN,
   GOVERNANCE_MODE_PRIVE_ONLY,
   LABEL_BYTES,
@@ -28,11 +28,14 @@ import {
 } from "./helpers/eligibility-constants.ts";
 
 import {
-  findCanonicalEpochRegistryPda,
   findEligibilityClassPda,
   findEligibilityRecordPda,
   findEligibilityRegistryPda,
 } from "./helpers/eligibility-pdas.ts";
+
+import {
+  initializeCanonicalEpochRegistry,
+} from "./helpers/epoch-registry-fixture.ts";
 
 import {
   getEligibilityProgram,
@@ -96,7 +99,7 @@ describe("physis_eligibility_registry record policy", () => {
 	const realm = Keypair.generate();
 
 	const epochRegistry =
-	  findCanonicalEpochRegistryPda(realm.publicKey);
+	  await initializeCanonicalEpochRegistry(realm.publicKey);
 
 	const { pda: registry } = findEligibilityRegistryPda(
 	  program.programId,
@@ -251,14 +254,14 @@ describe("physis_eligibility_registry record policy", () => {
 	};
   }
 
-  it("accepts PRIVE collection verification for PRIVE_MEMBER", async () => {
+  it("accepts PRIVÉ collection attestation for PRIVE_MEMBER", async () => {
 	const fixture = await createPriveFixture();
 
 	const eligibilityRecord = await upsertRecord({
 	  ...fixture,
 	  classId: CLASS_ID_PRIVE_MEMBER,
 	  source:
-		ELIGIBILITY_SOURCE_PRIVE_COLLECTION_VERIFIED,
+		ELIGIBILITY_SOURCE_PRIVE_COLLECTION_ATTESTATION,
 	});
 
 	const account =
@@ -268,17 +271,17 @@ describe("physis_eligibility_registry record policy", () => {
 
 	assert.strictEqual(
 	  account.source,
-	  ELIGIBILITY_SOURCE_PRIVE_COLLECTION_VERIFIED,
+	  ELIGIBILITY_SOURCE_PRIVE_COLLECTION_ATTESTATION,
 	);
   });
 
-  it("accepts DAO approval for PRIVE_MEMBER", async () => {
+  it("accepts DAO governance override for PRIVE_MEMBER", async () => {
 	const fixture = await createPriveFixture();
 
 	const eligibilityRecord = await upsertRecord({
 	  ...fixture,
 	  classId: CLASS_ID_PRIVE_MEMBER,
-	  source: ELIGIBILITY_SOURCE_DAO_APPROVED,
+	  source: ELIGIBILITY_SOURCE_DAO_GOVERNANCE_OVERRIDE,
 	});
 
 	const account =
@@ -288,29 +291,29 @@ describe("physis_eligibility_registry record policy", () => {
 
 	assert.strictEqual(
 	  account.source,
-	  ELIGIBILITY_SOURCE_DAO_APPROVED,
+	  ELIGIBILITY_SOURCE_DAO_GOVERNANCE_OVERRIDE,
 	);
   });
 
-  it("accepts manual Council approval for PRIVE_MEMBER", async () => {
-	const fixture = await createPriveFixture();
+  it(
+    "rejects the deprecated manual Council source",
+    async () => {
+      const fixture =
+        await createPriveFixture();
 
-	const eligibilityRecord = await upsertRecord({
-	  ...fixture,
-	  classId: CLASS_ID_PRIVE_MEMBER,
-	  source: ELIGIBILITY_SOURCE_MANUAL_COUNCIL,
-	});
-
-	const account =
-	  await program.account.eligibilityRecord.fetch(
-		eligibilityRecord,
-	  );
-
-	assert.strictEqual(
-	  account.source,
-	  ELIGIBILITY_SOURCE_MANUAL_COUNCIL,
-	);
-  });
+      await expectAnchorError(
+        () =>
+          upsertRecord({
+            ...fixture,
+            classId:
+              CLASS_ID_PRIVE_MEMBER,
+            source:
+              ELIGIBILITY_SOURCE_MANUAL_COUNCIL_DEPRECATED,
+          }),
+        "InvalidEligibilitySource",
+      );
+    },
+  );
 
   it("accepts Persona attestation for PERSONA_VERIFIED", async () => {
 	const fixture = await createPersonaFixture();
@@ -390,7 +393,7 @@ describe("physis_eligibility_registry record policy", () => {
 	);
   });
 
-  it("rejects PRIVE collection verification for PERSONA_VERIFIED", async () => {
+  it("rejects PRIVÉ collection attestation for PERSONA_VERIFIED", async () => {
 	const fixture = await createPersonaFixture();
 
 	await expectAnchorError(
@@ -399,13 +402,13 @@ describe("physis_eligibility_registry record policy", () => {
 		  ...fixture,
 		  classId: CLASS_ID_PERSONA_VERIFIED,
 		  source:
-			ELIGIBILITY_SOURCE_PRIVE_COLLECTION_VERIFIED,
+			ELIGIBILITY_SOURCE_PRIVE_COLLECTION_ATTESTATION,
 		}),
 	  "EligibilitySourceClassMismatch",
 	);
   });
 
-  it("rejects DAO approval for PERSONA_VERIFIED", async () => {
+  it("rejects DAO governance override for PERSONA_VERIFIED", async () => {
 	const fixture = await createPersonaFixture();
 
 	await expectAnchorError(
@@ -413,13 +416,13 @@ describe("physis_eligibility_registry record policy", () => {
 		upsertRecord({
 		  ...fixture,
 		  classId: CLASS_ID_PERSONA_VERIFIED,
-		  source: ELIGIBILITY_SOURCE_DAO_APPROVED,
+		  source: ELIGIBILITY_SOURCE_DAO_GOVERNANCE_OVERRIDE,
 		}),
 	  "EligibilitySourceClassMismatch",
 	);
   });
 
-  it("rejects manual Council approval for PERSONA_VERIFIED", async () => {
+  it("rejects the deprecated manual Council source for PERSONA_VERIFIED", async () => {
 	const fixture = await createPersonaFixture();
 
 	await expectAnchorError(
@@ -428,9 +431,9 @@ describe("physis_eligibility_registry record policy", () => {
 		  ...fixture,
 		  classId: CLASS_ID_PERSONA_VERIFIED,
 		  source:
-			ELIGIBILITY_SOURCE_MANUAL_COUNCIL,
+			ELIGIBILITY_SOURCE_MANUAL_COUNCIL_DEPRECATED,
 		}),
-	  "EligibilitySourceClassMismatch",
+	  "InvalidEligibilitySource",
 	);
   });
 

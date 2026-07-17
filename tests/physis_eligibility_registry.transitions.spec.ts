@@ -20,11 +20,14 @@ import {
 } from "./helpers/eligibility-constants.ts";
 
 import {
-  findCanonicalEpochRegistryPda,
   findEligibilityClassPda,
   findEligibilityRecordPda,
   findEligibilityRegistryPda,
 } from "./helpers/eligibility-pdas.ts";
+
+import {
+  initializeCanonicalEpochRegistry,
+} from "./helpers/epoch-registry-fixture.ts";
 
 import {
   getEligibilityProgram,
@@ -83,7 +86,7 @@ describe("physis_eligibility_registry record transitions", () => {
 	const realm = Keypair.generate();
 
 	const epochRegistry =
-	  findCanonicalEpochRegistryPda(realm.publicKey);
+	  await initializeCanonicalEpochRegistry(realm.publicKey);
 
 	const { pda: registry } =
 	  findEligibilityRegistryPda(

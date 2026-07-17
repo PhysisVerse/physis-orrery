@@ -1,7 +1,9 @@
-// AUTO-GENERATED FROM THE ANCHOR JSON IDL.
-// Names are camel-cased to match Anchor's TypeScript runtime client.
-// Regenerate this file after an on-chain IDL change.
-
+/**
+ * Program IDL in camelCase format in order to be used in JS/TS.
+ *
+ * Note that this is only a type helper and is not the actual IDL. The original
+ * IDL can be found at `target/idl/physis_eligibility_registry.json`.
+ */
 export type PhysisEligibilityRegistry = {
   "address": "PHYwVLxfos5STGcSzFe9Jirzy6YiEPPZC3wVKoTHoER",
   "metadata": {
@@ -117,7 +119,7 @@ export type PhysisEligibilityRegistry = {
         {
           "name": "epochRegistry",
           "docs": [
-            "epoch-registry PDA for the supplied Realm."
+            "Program 1-owned EpochRegistry for the supplied Realm."
           ]
         },
         {
@@ -956,8 +958,38 @@ export type PhysisEligibilityRegistry = {
     },
     {
       "code": 6023,
+      "name": "epochRegistryNotInitialized",
+      "msg": "Program 1 Epoch Registry account does not exist or is not initialized"
+    },
+    {
+      "code": 6024,
+      "name": "invalidEpochRegistryOwner",
+      "msg": "Program 1 Epoch Registry has an invalid account owner"
+    },
+    {
+      "code": 6025,
+      "name": "invalidEpochRegistryDiscriminator",
+      "msg": "Program 1 Epoch Registry has an invalid account discriminator"
+    },
+    {
+      "code": 6026,
+      "name": "invalidEpochRegistryVersion",
+      "msg": "Program 1 Epoch Registry uses an unsupported version"
+    },
+    {
+      "code": 6027,
+      "name": "epochRegistryRealmMismatch",
+      "msg": "Program 1 Epoch Registry belongs to a different Realm"
+    },
+    {
+      "code": 6028,
       "name": "mathOverflow",
       "msg": "Math overflow"
+    },
+    {
+      "code": 6029,
+      "name": "eligibilitySourceClassMismatch",
+      "msg": "Eligibility source is not permitted for this eligibility class"
     }
   ],
   "types": [
@@ -1252,11 +1284,19 @@ export type PhysisEligibilityRegistry = {
             "type": "u8"
           },
           {
+            "name": "evidenceIssuedAt",
+            "type": "i64"
+          },
+          {
+            "name": "evidenceExpiresAt",
+            "type": "i64"
+          },
+          {
             "name": "reserved",
             "type": {
               "array": [
                 "u8",
-                128
+                112
               ]
             }
           }
@@ -1637,3 +1677,4 @@ export type PhysisEligibilityRegistry = {
     }
   ]
 };
+

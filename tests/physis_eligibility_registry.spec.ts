@@ -30,11 +30,14 @@ import {
 } from "./helpers/eligibility-constants.ts";
 
 import {
-  findCanonicalEpochRegistryPda,
   findEligibilityClassPda,
   findEligibilityRecordPda,
   findEligibilityRegistryPda,
 } from "./helpers/eligibility-pdas.ts";
+
+import {
+  initializeCanonicalEpochRegistry,
+} from "./helpers/epoch-registry-fixture.ts";
 
 describe("physis_eligibility_registry", () => {
   const provider = anchor.AnchorProvider.env();
@@ -90,7 +93,7 @@ describe("physis_eligibility_registry", () => {
 
 	const epochRegistry =
 	  params?.epochRegistry ??
-	  findCanonicalEpochRegistryPda(realm.publicKey);
+	  await initializeCanonicalEpochRegistry(realm.publicKey);
 
 	const { pda: registry, bump } = findEligibilityRegistryPda(
 	  program.programId,
@@ -472,7 +475,7 @@ describe("physis_eligibility_registry", () => {
 	const realm = createFakeRealm();
 
 	const epochRegistry =
-	  findCanonicalEpochRegistryPda(realm.publicKey);
+	  await initializeCanonicalEpochRegistry(realm.publicKey);
 
 	await initializeEligibilityRegistry({
 	  realm,
@@ -707,6 +710,17 @@ describe("physis_eligibility_registry", () => {
 	);
 
 	assert.strictEqual(recordAccount.bump, bump);
+
+	assert.ok(
+	  recordAccount.evidenceIssuedAt.gt(
+	    new anchor.BN(0),
+	  ),
+	);
+
+	assert.strictEqual(
+	  recordAccount.evidenceExpiresAt.toString(),
+	  "0",
+	);
   });
 
   it("creates a wallet PERSONA_VERIFIED eligibility record", async () => {

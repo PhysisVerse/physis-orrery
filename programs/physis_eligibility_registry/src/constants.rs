@@ -14,17 +14,13 @@ pub const ELIGIBILITY_RECORD_RESERVED_BYTES: usize = 112;
 
 pub const ANCHOR_DISCRIMINATOR_BYTES: usize = 8;
 pub const PROGRAM1_EPOCH_REGISTRY_VERSION: u8 = 1;
-pub const PROGRAM1_EPOCH_REGISTRY_HEADER_BYTES: usize =
-    ANCHOR_DISCRIMINATOR_BYTES + 1 + 32 + 32;
+pub const PROGRAM1_EPOCH_REGISTRY_HEADER_BYTES: usize = ANCHOR_DISCRIMINATOR_BYTES + 1 + 32 + 32;
 
-pub const PROGRAM1_EPOCH_REGISTRY_VERSION_OFFSET: usize =
-    ANCHOR_DISCRIMINATOR_BYTES;
+pub const PROGRAM1_EPOCH_REGISTRY_VERSION_OFFSET: usize = ANCHOR_DISCRIMINATOR_BYTES;
 
-pub const PROGRAM1_EPOCH_REGISTRY_REALM_OFFSET: usize =
-    ANCHOR_DISCRIMINATOR_BYTES + 1 + 32;
+pub const PROGRAM1_EPOCH_REGISTRY_REALM_OFFSET: usize = ANCHOR_DISCRIMINATOR_BYTES + 1 + 32;
 
-pub const PROGRAM1_EPOCH_REGISTRY_DISCRIMINATOR: [u8; 8] =
-    [110, 195, 188, 135, 201, 96, 31, 9];
+pub const PROGRAM1_EPOCH_REGISTRY_DISCRIMINATOR: [u8; 8] = [110, 195, 188, 135, 201, 96, 31, 9];
 
 pub const SEED_PREFIX: &[u8] = b"physis";
 pub const SEED_EPOCH_REGISTRY: &[u8] = b"epoch-registry";
@@ -99,32 +95,21 @@ pub fn validate_authority(expected: Pubkey, actual: Pubkey) -> Result<()> {
 }
 
 pub fn is_valid_class_kind(kind: u8) -> bool {
-    matches!(
-        kind,
-        CLASS_KIND_PRIVE_MEMBER | CLASS_KIND_PERSONA_VERIFIED
-    )
+    matches!(kind, CLASS_KIND_PRIVE_MEMBER | CLASS_KIND_PERSONA_VERIFIED)
 }
 
 pub fn is_valid_class_identity(class_id: u32, kind: u8) -> bool {
     matches!(
         (class_id, kind),
-        (
-            CLASS_ID_PRIVE_MEMBER,
-            CLASS_KIND_PRIVE_MEMBER
-        ) | (
-            CLASS_ID_PERSONA_VERIFIED,
-            CLASS_KIND_PERSONA_VERIFIED
-        )
+        (CLASS_ID_PRIVE_MEMBER, CLASS_KIND_PRIVE_MEMBER)
+            | (CLASS_ID_PERSONA_VERIFIED, CLASS_KIND_PERSONA_VERIFIED)
     )
 }
 
 pub fn is_valid_class_status(status: u8) -> bool {
     matches!(
         status,
-        CLASS_STATUS_DRAFT
-            | CLASS_STATUS_ACTIVE
-            | CLASS_STATUS_DISABLED
-            | CLASS_STATUS_DEPRECATED
+        CLASS_STATUS_DRAFT | CLASS_STATUS_ACTIVE | CLASS_STATUS_DISABLED | CLASS_STATUS_DEPRECATED
     )
 }
 
@@ -141,10 +126,7 @@ pub fn is_valid_class_state(status: u8, enabled: bool) -> bool {
 // Direct upsert is limited to constructive states.
 // Suspension and revocation use their dedicated instructions.
 pub fn is_valid_record_upsert_status(status: u8) -> bool {
-    matches!(
-        status,
-        RECORD_STATUS_PENDING | RECORD_STATUS_ACTIVE
-    )
+    matches!(status, RECORD_STATUS_PENDING | RECORD_STATUS_ACTIVE)
 }
 
 pub fn is_valid_eligibility_source(source: u8) -> bool {
@@ -156,11 +138,7 @@ pub fn is_valid_eligibility_source(source: u8) -> bool {
     )
 }
 
-pub fn is_valid_class_source(
-    class_id: u32,
-    class_kind: u8,
-    source: u8,
-) -> bool {
+pub fn is_valid_class_source(class_id: u32, class_kind: u8, source: u8) -> bool {
     matches!(
         (class_id, class_kind, source),
         (
@@ -176,10 +154,6 @@ pub fn is_valid_class_source(
     )
 }
 
-pub fn is_valid_epoch_window(
-    valid_from_epoch_id: u32,
-    valid_until_epoch_id: u32,
-) -> bool {
-    valid_until_epoch_id == 0
-        || valid_until_epoch_id >= valid_from_epoch_id
+pub fn is_valid_epoch_window(valid_from_epoch_id: u32, valid_until_epoch_id: u32) -> bool {
+    valid_until_epoch_id == 0 || valid_until_epoch_id >= valid_from_epoch_id
 }

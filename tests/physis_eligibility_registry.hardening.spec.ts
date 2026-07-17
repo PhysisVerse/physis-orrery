@@ -21,11 +21,14 @@ import {
 } from "./helpers/eligibility-constants.ts";
 
 import {
-  findCanonicalEpochRegistryPda,
   findEligibilityClassPda,
   findEligibilityRecordPda,
   findEligibilityRegistryPda,
 } from "./helpers/eligibility-pdas.ts";
+
+import {
+  initializeCanonicalEpochRegistry,
+} from "./helpers/epoch-registry-fixture.ts";
 
 /*
  * These include Anchor's 8-byte account discriminator.
@@ -77,7 +80,7 @@ describe("physis_eligibility_registry hardening", () => {
 
   async function initializeRegistry() {
 	const realm = Keypair.generate();
-	const epochRegistry = findCanonicalEpochRegistryPda(realm.publicKey);
+	const epochRegistry = await initializeCanonicalEpochRegistry(realm.publicKey);
 
 	const { pda: registry } = findEligibilityRegistryPda(
 	  program.programId,

@@ -24,8 +24,7 @@ pub struct EligibilityRegistry {
 
 impl EligibilityRegistry {
     pub const LEN: usize =
-        1 + 32 + 32 + 32 + 1 + 1 + 4 + 8 + 8 + 8 + 8 + 8 + 8 + 8 + 1
-            + RESERVED_BYTES;
+        1 + 32 + 32 + 32 + 1 + 1 + 4 + 8 + 8 + 8 + 8 + 8 + 8 + 8 + 1 + RESERVED_BYTES;
 }
 
 #[account]

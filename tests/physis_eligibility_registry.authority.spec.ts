@@ -16,8 +16,11 @@ import {
 import {
   findEligibilityClassPda,
   findEligibilityRegistryPda,
-  findCanonicalEpochRegistryPda,
 } from "./helpers/eligibility-pdas.ts";
+
+import {
+  initializeCanonicalEpochRegistry,
+} from "./helpers/epoch-registry-fixture.ts";
 
 describe("physis_eligibility_registry authority transfer", () => {
   const provider = anchor.AnchorProvider.env();
@@ -50,7 +53,7 @@ describe("physis_eligibility_registry authority transfer", () => {
 
   async function initializeRegistry() {
 	const realm = Keypair.generate();
-	const epochRegistry = findCanonicalEpochRegistryPda(realm.publicKey);
+	const epochRegistry = await initializeCanonicalEpochRegistry(realm.publicKey);
 
 	const { pda: registry } = findEligibilityRegistryPda(
 	  program.programId,

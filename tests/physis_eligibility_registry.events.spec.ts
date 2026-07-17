@@ -18,11 +18,14 @@ import {
 } from "./helpers/eligibility-constants.ts";
 
 import {
-  findCanonicalEpochRegistryPda,
   findEligibilityClassPda,
   findEligibilityRecordPda,
   findEligibilityRegistryPda,
 } from "./helpers/eligibility-pdas.ts";
+
+import {
+  initializeCanonicalEpochRegistry,
+} from "./helpers/epoch-registry-fixture.ts";
 
 type ParsedEvent = {
   name: string;
@@ -140,7 +143,7 @@ describe("physis_eligibility_registry events", () => {
 
   async function initializeRegistry() {
 	const realm = Keypair.generate();
-	const epochRegistry = findCanonicalEpochRegistryPda(realm.publicKey);
+	const epochRegistry = await initializeCanonicalEpochRegistry(realm.publicKey);
 
 	const { pda: registry } = findEligibilityRegistryPda(
 	  program.programId,

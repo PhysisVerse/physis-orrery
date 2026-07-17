@@ -19,10 +19,13 @@ import {
 } from "./helpers/eligibility-constants.ts";
 
 import {
-  findCanonicalEpochRegistryPda,
   findEligibilityClassPda,
   findEligibilityRegistryPda,
 } from "./helpers/eligibility-pdas.ts";
+
+import {
+  initializeCanonicalEpochRegistry,
+} from "./helpers/epoch-registry-fixture.ts";
 
 const RESERVED_PHY_HOLDER_CLASS_ID = 10;
 const RESERVED_PHY_HOLDER_CLASS_KIND = 10;
@@ -58,7 +61,7 @@ describe("physis_eligibility_registry class invariants", () => {
 
   async function initializeRegistry(): Promise<PublicKey> {
 	const realm = Keypair.generate();
-	const epochRegistry = findCanonicalEpochRegistryPda(realm.publicKey);
+	const epochRegistry = await initializeCanonicalEpochRegistry(realm.publicKey);
 
 	const { pda: registry } = findEligibilityRegistryPda(
 	  program.programId,
