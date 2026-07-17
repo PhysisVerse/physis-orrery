@@ -9,6 +9,7 @@ export const GOVERNANCE_MODE_PRIVE_ONLY = 1;
 export const ELIGIBILITY_REGISTRY_VERSION = 1;
 export const ELIGIBILITY_CLASS_VERSION = 1;
 export const ELIGIBILITY_RECORD_VERSION = 2;
+export const ISSUER_GRANT_VERSION = 1;
 
 export const NAME_BYTES = 32;
 export const LABEL_BYTES = 16;
@@ -50,15 +51,27 @@ export const
 export const
   ELIGIBILITY_SOURCE_MANUAL_COUNCIL_DEPRECATED = 4;
 
-// Temporary TypeScript aliases for unaffected tests.
-// Remove these during the IssuerGrant migration.
+export const ISSUER_PERMISSION_CREATE = 1;
+export const ISSUER_PERMISSION_REFRESH = 1 << 1;
+export const ISSUER_PERMISSION_ACTIVATE_PENDING = 1 << 2;
+export const ISSUER_PERMISSION_SUSPEND = 1 << 3;
+export const ISSUER_PERMISSION_EXPIRE = 1 << 4;
+
+export const ISSUER_PERMISSION_ALL =
+  ISSUER_PERMISSION_CREATE |
+  ISSUER_PERMISSION_REFRESH |
+  ISSUER_PERMISSION_ACTIVATE_PENDING |
+  ISSUER_PERMISSION_SUSPEND |
+  ISSUER_PERMISSION_EXPIRE;
+
+// Temporary aliases retained until the delegated record instruction
+// migration updates every remaining test and operational script.
 export const ELIGIBILITY_SOURCE_DAO_APPROVED =
   ELIGIBILITY_SOURCE_DAO_GOVERNANCE_OVERRIDE;
 
 export const
   ELIGIBILITY_SOURCE_PRIVE_COLLECTION_VERIFIED =
-	ELIGIBILITY_SOURCE_PRIVE_COLLECTION_ATTESTATION;
+    ELIGIBILITY_SOURCE_PRIVE_COLLECTION_ATTESTATION;
 
 export const ELIGIBILITY_SOURCE_MANUAL_COUNCIL =
   ELIGIBILITY_SOURCE_MANUAL_COUNCIL_DEPRECATED;
-  

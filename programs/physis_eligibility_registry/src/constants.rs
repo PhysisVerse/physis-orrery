@@ -3,6 +3,7 @@ use anchor_lang::prelude::*;
 pub const REGISTRY_VERSION: u8 = 1;
 pub const ELIGIBILITY_CLASS_VERSION: u8 = 1;
 pub const ELIGIBILITY_RECORD_VERSION: u8 = 2;
+pub const ISSUER_GRANT_VERSION: u8 = 1;
 
 pub const NAME_BYTES: usize = 32;
 pub const LABEL_BYTES: usize = 16;
@@ -11,13 +12,13 @@ pub const METADATA_HASH_BYTES: usize = 32;
 
 pub const RESERVED_BYTES: usize = 128;
 pub const ELIGIBILITY_RECORD_RESERVED_BYTES: usize = 112;
+pub const ISSUER_GRANT_RESERVED_BYTES: usize = 64;
 
 pub const ANCHOR_DISCRIMINATOR_BYTES: usize = 8;
 pub const PROGRAM1_EPOCH_REGISTRY_VERSION: u8 = 1;
 pub const PROGRAM1_EPOCH_REGISTRY_HEADER_BYTES: usize = ANCHOR_DISCRIMINATOR_BYTES + 1 + 32 + 32;
 
 pub const PROGRAM1_EPOCH_REGISTRY_VERSION_OFFSET: usize = ANCHOR_DISCRIMINATOR_BYTES;
-
 pub const PROGRAM1_EPOCH_REGISTRY_REALM_OFFSET: usize = ANCHOR_DISCRIMINATOR_BYTES + 1 + 32;
 
 pub const PROGRAM1_EPOCH_REGISTRY_DISCRIMINATOR: [u8; 8] = [110, 195, 188, 135, 201, 96, 31, 9];
@@ -27,6 +28,7 @@ pub const SEED_EPOCH_REGISTRY: &[u8] = b"epoch-registry";
 pub const SEED_ELIGIBILITY_REGISTRY: &[u8] = b"eligibility-registry";
 pub const SEED_ELIGIBILITY_CLASS: &[u8] = b"eligibility-class";
 pub const SEED_ELIGIBILITY_RECORD: &[u8] = b"eligibility-record";
+pub const SEED_ISSUER_GRANT: &[u8] = b"eligibility-issuer";
 
 pub const PHYSIS_EPOCH_REGISTRY_PROGRAM_ID: Pubkey =
     pubkey!("PHYcBRWd6mKATk3xo8oYi3d55BBHUc7kAN4kK91cJoE");
@@ -81,8 +83,20 @@ pub const ELIGIBILITY_SOURCE_PRIVE_COLLECTION_ATTESTATION: u8 = 2;
 pub const ELIGIBILITY_SOURCE_PERSONA_ATTESTATION: u8 = 3;
 
 // Numeric value retained only as a deprecated namespace reservation.
-// New records must reject it.
+// New records and grants must reject it.
 pub const ELIGIBILITY_SOURCE_MANUAL_COUNCIL_DEPRECATED: u8 = 4;
+
+pub const ISSUER_PERMISSION_CREATE: u16 = 1;
+pub const ISSUER_PERMISSION_REFRESH: u16 = 1 << 1;
+pub const ISSUER_PERMISSION_ACTIVATE_PENDING: u16 = 1 << 2;
+pub const ISSUER_PERMISSION_SUSPEND: u16 = 1 << 3;
+pub const ISSUER_PERMISSION_EXPIRE: u16 = 1 << 4;
+
+pub const ISSUER_PERMISSION_ALL: u16 = ISSUER_PERMISSION_CREATE
+    | ISSUER_PERMISSION_REFRESH
+    | ISSUER_PERMISSION_ACTIVATE_PENDING
+    | ISSUER_PERMISSION_SUSPEND
+    | ISSUER_PERMISSION_EXPIRE;
 
 pub fn validate_authority(expected: Pubkey, actual: Pubkey) -> Result<()> {
     require_keys_eq!(
@@ -138,6 +152,13 @@ pub fn is_valid_eligibility_source(source: u8) -> bool {
     )
 }
 
+pub fn is_delegated_issuer_source(source: u8) -> bool {
+    matches!(
+        source,
+        ELIGIBILITY_SOURCE_PRIVE_COLLECTION_ATTESTATION | ELIGIBILITY_SOURCE_PERSONA_ATTESTATION
+    )
+}
+
 pub fn is_valid_class_source(class_id: u32, class_kind: u8, source: u8) -> bool {
     matches!(
         (class_id, class_kind, source),
@@ -156,4 +177,18 @@ pub fn is_valid_class_source(class_id: u32, class_kind: u8, source: u8) -> bool 
 
 pub fn is_valid_epoch_window(valid_from_epoch_id: u32, valid_until_epoch_id: u32) -> bool {
     valid_until_epoch_id == 0 || valid_until_epoch_id >= valid_from_epoch_id
+}
+
+pub fn is_valid_issuer_permissions(permissions: u16) -> bool {
+    permissions != 0 && (permissions & !ISSUER_PERMISSION_ALL) == 0
+}
+
+pub fn has_issuer_permission(permissions: u16, permission: u16) -> bool {
+    permissions & permission == permission
+}
+
+pub fn is_valid_timestamp_window(valid_from_ts: i64, valid_until_ts: i64) -> bool {
+    valid_from_ts >= 0
+        && valid_until_ts >= 0
+        && (valid_until_ts == 0 || valid_until_ts >= valid_from_ts)
 }

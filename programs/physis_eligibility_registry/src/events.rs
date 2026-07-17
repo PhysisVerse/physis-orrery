@@ -38,6 +38,39 @@ pub struct EligibilityClassDisabled {
 }
 
 #[event]
+pub struct IssuerGrantUpserted {
+    pub registry: Pubkey,
+    pub eligibility_class: Pubkey,
+    pub issuer_grant: Pubkey,
+    pub authority: Pubkey,
+    pub class_id: u32,
+    pub issuer: Pubkey,
+    pub allowed_source: u8,
+    pub permissions: u16,
+    pub enabled: bool,
+    pub max_evidence_ttl_seconds: u32,
+    pub valid_from_ts: i64,
+    pub valid_until_ts: i64,
+    pub timestamp: i64,
+    pub slot: u64,
+    pub solana_epoch: u64,
+}
+
+#[event]
+pub struct IssuerGrantDisabled {
+    pub registry: Pubkey,
+    pub eligibility_class: Pubkey,
+    pub issuer_grant: Pubkey,
+    pub authority: Pubkey,
+    pub class_id: u32,
+    pub issuer: Pubkey,
+    pub allowed_source: u8,
+    pub timestamp: i64,
+    pub slot: u64,
+    pub solana_epoch: u64,
+}
+
+#[event]
 pub struct EligibilityRecordUpserted {
     pub registry: Pubkey,
     pub eligibility_class: Pubkey,

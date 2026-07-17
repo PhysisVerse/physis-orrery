@@ -39,257 +39,317 @@ describe("physis_eligibility_registry class invariants", () => {
   assert.strictEqual(program.programId.toBase58(), ELIGIBILITY_PROGRAM_ID);
 
   function fixedBytes(value: string, length: number): number[] {
-	const bytes = Buffer.alloc(length);
-	bytes.write(value, "utf8");
-	return Array.from(bytes);
+    const bytes = Buffer.alloc(length);
+    bytes.write(value, "utf8");
+    return Array.from(bytes);
   }
 
   async function expectRejects(
-	promiseFactory: () => Promise<unknown>,
-	label: string,
+    promiseFactory: () => Promise<unknown>,
+    label: string,
   ): Promise<void> {
-	let rejected = false;
+    let rejected = false;
 
-	try {
-	  await promiseFactory();
-	} catch {
-	  rejected = true;
-	}
+    try {
+      await promiseFactory();
+    } catch {
+      rejected = true;
+    }
 
-	assert.strictEqual(rejected, true, `Expected rejection: ${label}`);
+    assert.strictEqual(rejected, true, `Expected rejection: ${label}`);
   }
 
   async function initializeRegistry(): Promise<PublicKey> {
-	const realm = Keypair.generate();
-	const epochRegistry = await initializeCanonicalEpochRegistry(realm.publicKey);
+    const realm = Keypair.generate();
+    const epochRegistry =
+      await initializeCanonicalEpochRegistry(realm.publicKey);
 
-	const { pda: registry } = findEligibilityRegistryPda(
-	  program.programId,
-	  realm.publicKey,
-	);
+    const { pda: registry } = findEligibilityRegistryPda(
+      program.programId,
+      realm.publicKey,
+    );
 
-	await program.methods
-	  .initializeRegistry(GOVERNANCE_MODE_PRIVE_ONLY)
-	  .accountsStrict({
-		payer: provider.wallet.publicKey,
-		authority: provider.wallet.publicKey,
-		realm: realm.publicKey,
-		epochRegistry,
-		registry,
-		systemProgram: SystemProgram.programId,
-	  })
-	  .rpc();
+    await program.methods
+      .initializeRegistry(GOVERNANCE_MODE_PRIVE_ONLY)
+      .accountsStrict({
+        payer: provider.wallet.publicKey,
+        authority: provider.wallet.publicKey,
+        realm: realm.publicKey,
+        epochRegistry,
+        registry,
+        systemProgram: SystemProgram.programId,
+      })
+      .rpc();
 
-	return registry;
+    return registry;
   }
 
   async function upsertClass(params: {
-	registry: PublicKey;
-	classId: number;
-	kind: number;
-	status: number;
-	enabled: boolean;
-	name?: string;
-	label?: string;
+    registry: PublicKey;
+    classId: number;
+    kind: number;
+    status: number;
+    enabled: boolean;
+    name?: string;
+    label?: string;
+    governanceEligible?: boolean;
+    rewardsEligible?: boolean;
   }): Promise<PublicKey> {
-	const { pda: eligibilityClass } = findEligibilityClassPda(
-	  program.programId,
-	  params.registry,
-	  params.classId,
-	);
+    const { pda: eligibilityClass } = findEligibilityClassPda(
+      program.programId,
+      params.registry,
+      params.classId,
+    );
 
-	await program.methods
-	  .upsertEligibilityClass(
-		params.classId,
-		fixedBytes(params.name ?? "TEST_CLASS", NAME_BYTES),
-		fixedBytes(params.label ?? "TEST", LABEL_BYTES),
-		params.kind,
-		params.status,
-		params.enabled,
-		false,
-		false,
-		PublicKey.default,
-		new anchor.BN(0),
-		0,
-		0,
-	  )
-	  .accountsStrict({
-		payer: provider.wallet.publicKey,
-		authority: provider.wallet.publicKey,
-		registry: params.registry,
-		eligibilityClass,
-		systemProgram: SystemProgram.programId,
-	  })
-	  .rpc();
+    const defaultGovernanceEligible =
+      params.classId === CLASS_ID_PRIVE_MEMBER;
 
-	return eligibilityClass;
+    await program.methods
+      .upsertEligibilityClass(
+        params.classId,
+        fixedBytes(params.name ?? "TEST_CLASS", NAME_BYTES),
+        fixedBytes(params.label ?? "TEST", LABEL_BYTES),
+        params.kind,
+        params.status,
+        params.enabled,
+        params.governanceEligible ?? defaultGovernanceEligible,
+        params.rewardsEligible ?? false,
+        PublicKey.default,
+        new anchor.BN(0),
+        0,
+        0,
+      )
+      .accountsStrict({
+        payer: provider.wallet.publicKey,
+        authority: provider.wallet.publicKey,
+        registry: params.registry,
+        eligibilityClass,
+        systemProgram: SystemProgram.programId,
+      })
+      .rpc();
+
+    return eligibilityClass;
   }
 
   it("rejects PRIVE_MEMBER id paired with PERSONA_VERIFIED kind", async () => {
-	const registry = await initializeRegistry();
+    const registry = await initializeRegistry();
 
-	await expectRejects(
-	  () =>
-		upsertClass({
-		  registry,
-		  classId: CLASS_ID_PRIVE_MEMBER,
-		  kind: CLASS_KIND_PERSONA_VERIFIED,
-		  status: CLASS_STATUS_ACTIVE,
-		  enabled: true,
-		}),
-	  "PRIVE class id cannot use Persona class kind",
-	);
+    await expectRejects(
+      () =>
+        upsertClass({
+          registry,
+          classId: CLASS_ID_PRIVE_MEMBER,
+          kind: CLASS_KIND_PERSONA_VERIFIED,
+          status: CLASS_STATUS_ACTIVE,
+          enabled: true,
+        }),
+      "PRIVE class id cannot use Persona class kind",
+    );
   });
 
   it("rejects PERSONA_VERIFIED id paired with PRIVE_MEMBER kind", async () => {
-	const registry = await initializeRegistry();
+    const registry = await initializeRegistry();
 
-	await expectRejects(
-	  () =>
-		upsertClass({
-		  registry,
-		  classId: CLASS_ID_PERSONA_VERIFIED,
-		  kind: CLASS_KIND_PRIVE_MEMBER,
-		  status: CLASS_STATUS_ACTIVE,
-		  enabled: true,
-		}),
-	  "Persona class id cannot use PRIVE class kind",
-	);
+    await expectRejects(
+      () =>
+        upsertClass({
+          registry,
+          classId: CLASS_ID_PERSONA_VERIFIED,
+          kind: CLASS_KIND_PRIVE_MEMBER,
+          status: CLASS_STATUS_ACTIVE,
+          enabled: true,
+        }),
+      "Persona class id cannot use PRIVE class kind",
+    );
   });
 
   it("rejects reserved future classes in v1", async () => {
-	const registry = await initializeRegistry();
+    const registry = await initializeRegistry();
 
-	await expectRejects(
-	  () =>
-		upsertClass({
-		  registry,
-		  classId: RESERVED_PHY_HOLDER_CLASS_ID,
-		  kind: RESERVED_PHY_HOLDER_CLASS_KIND,
-		  status: CLASS_STATUS_ACTIVE,
-		  enabled: true,
-		}),
-	  "reserved PHY holder class cannot become live in v1",
-	);
+    await expectRejects(
+      () =>
+        upsertClass({
+          registry,
+          classId: RESERVED_PHY_HOLDER_CLASS_ID,
+          kind: RESERVED_PHY_HOLDER_CLASS_KIND,
+          status: CLASS_STATUS_ACTIVE,
+          enabled: true,
+        }),
+      "reserved PHY holder class cannot become live in v1",
+    );
   });
 
   it("rejects an Active class with enabled set to false", async () => {
-	const registry = await initializeRegistry();
+    const registry = await initializeRegistry();
 
-	await expectRejects(
-	  () =>
-		upsertClass({
-		  registry,
-		  classId: CLASS_ID_PRIVE_MEMBER,
-		  kind: CLASS_KIND_PRIVE_MEMBER,
-		  status: CLASS_STATUS_ACTIVE,
-		  enabled: false,
-		}),
-	  "active class must be enabled",
-	);
+    await expectRejects(
+      () =>
+        upsertClass({
+          registry,
+          classId: CLASS_ID_PRIVE_MEMBER,
+          kind: CLASS_KIND_PRIVE_MEMBER,
+          status: CLASS_STATUS_ACTIVE,
+          enabled: false,
+        }),
+      "active class must be enabled",
+    );
   });
 
   it("rejects a Draft class with enabled set to true", async () => {
-	const registry = await initializeRegistry();
+    const registry = await initializeRegistry();
 
-	await expectRejects(
-	  () =>
-		upsertClass({
-		  registry,
-		  classId: CLASS_ID_PRIVE_MEMBER,
-		  kind: CLASS_KIND_PRIVE_MEMBER,
-		  status: CLASS_STATUS_DRAFT,
-		  enabled: true,
-		}),
-	  "draft class cannot be enabled",
-	);
+    await expectRejects(
+      () =>
+        upsertClass({
+          registry,
+          classId: CLASS_ID_PRIVE_MEMBER,
+          kind: CLASS_KIND_PRIVE_MEMBER,
+          status: CLASS_STATUS_DRAFT,
+          enabled: true,
+        }),
+      "draft class cannot be enabled",
+    );
   });
 
   it("rejects a Disabled class with enabled set to true", async () => {
-	const registry = await initializeRegistry();
+    const registry = await initializeRegistry();
 
-	await expectRejects(
-	  () =>
-		upsertClass({
-		  registry,
-		  classId: CLASS_ID_PRIVE_MEMBER,
-		  kind: CLASS_KIND_PRIVE_MEMBER,
-		  status: CLASS_STATUS_DISABLED,
-		  enabled: true,
-		}),
-	  "disabled class cannot be enabled",
-	);
+    await expectRejects(
+      () =>
+        upsertClass({
+          registry,
+          classId: CLASS_ID_PRIVE_MEMBER,
+          kind: CLASS_KIND_PRIVE_MEMBER,
+          status: CLASS_STATUS_DISABLED,
+          enabled: true,
+        }),
+      "disabled class cannot be enabled",
+    );
   });
 
   it("rejects a Deprecated class with enabled set to true", async () => {
-	const registry = await initializeRegistry();
+    const registry = await initializeRegistry();
 
-	await expectRejects(
-	  () =>
-		upsertClass({
-		  registry,
-		  classId: CLASS_ID_PRIVE_MEMBER,
-		  kind: CLASS_KIND_PRIVE_MEMBER,
-		  status: CLASS_STATUS_DEPRECATED,
-		  enabled: true,
-		}),
-	  "deprecated class cannot be enabled",
-	);
+    await expectRejects(
+      () =>
+        upsertClass({
+          registry,
+          classId: CLASS_ID_PRIVE_MEMBER,
+          kind: CLASS_KIND_PRIVE_MEMBER,
+          status: CLASS_STATUS_DEPRECATED,
+          enabled: true,
+        }),
+      "deprecated class cannot be enabled",
+    );
+  });
+
+  it("rejects PRIVE_MEMBER with governance eligibility disabled", async () => {
+    const registry = await initializeRegistry();
+
+    await expectRejects(
+      () =>
+        upsertClass({
+          registry,
+          classId: CLASS_ID_PRIVE_MEMBER,
+          kind: CLASS_KIND_PRIVE_MEMBER,
+          status: CLASS_STATUS_ACTIVE,
+          enabled: true,
+          governanceEligible: false,
+        }),
+      "PRIVE_MEMBER must remain governance-eligible",
+    );
+  });
+
+  it("rejects PERSONA_VERIFIED as independently governance-eligible", async () => {
+    const registry = await initializeRegistry();
+
+    await expectRejects(
+      () =>
+        upsertClass({
+          registry,
+          classId: CLASS_ID_PERSONA_VERIFIED,
+          kind: CLASS_KIND_PERSONA_VERIFIED,
+          status: CLASS_STATUS_ACTIVE,
+          enabled: true,
+          governanceEligible: true,
+        }),
+      "PERSONA_VERIFIED cannot independently grant governance eligibility",
+    );
+  });
+
+  it("rejects PERSONA_VERIFIED as independently rewards-eligible", async () => {
+    const registry = await initializeRegistry();
+
+    await expectRejects(
+      () =>
+        upsertClass({
+          registry,
+          classId: CLASS_ID_PERSONA_VERIFIED,
+          kind: CLASS_KIND_PERSONA_VERIFIED,
+          status: CLASS_STATUS_ACTIVE,
+          enabled: true,
+          rewardsEligible: true,
+        }),
+      "PERSONA_VERIFIED cannot independently grant rewards eligibility",
+    );
   });
 
   it("accepts valid disabled states without incrementing class_count", async () => {
-	const registry = await initializeRegistry();
+    const registry = await initializeRegistry();
 
-	const eligibilityClass = await upsertClass({
-	  registry,
-	  classId: CLASS_ID_PRIVE_MEMBER,
-	  kind: CLASS_KIND_PRIVE_MEMBER,
-	  status: CLASS_STATUS_DRAFT,
-	  enabled: false,
-	  name: "PRIVE_MEMBER",
-	  label: "PRIVE",
-	});
+    const eligibilityClass = await upsertClass({
+      registry,
+      classId: CLASS_ID_PRIVE_MEMBER,
+      kind: CLASS_KIND_PRIVE_MEMBER,
+      status: CLASS_STATUS_DRAFT,
+      enabled: false,
+      name: "PRIVE_MEMBER",
+      label: "PRIVE",
+    });
 
-	let classAccount =
-	  await program.account.eligibilityClass.fetch(eligibilityClass);
+    let classAccount =
+      await program.account.eligibilityClass.fetch(eligibilityClass);
 
-	assert.strictEqual(classAccount.status, CLASS_STATUS_DRAFT);
-	assert.strictEqual(classAccount.enabled, false);
+    assert.strictEqual(classAccount.status, CLASS_STATUS_DRAFT);
+    assert.strictEqual(classAccount.enabled, false);
+    assert.strictEqual(classAccount.governanceEligible, true);
 
-	await upsertClass({
-	  registry,
-	  classId: CLASS_ID_PRIVE_MEMBER,
-	  kind: CLASS_KIND_PRIVE_MEMBER,
-	  status: CLASS_STATUS_DISABLED,
-	  enabled: false,
-	  name: "PRIVE_MEMBER",
-	  label: "PRIVE",
-	});
+    await upsertClass({
+      registry,
+      classId: CLASS_ID_PRIVE_MEMBER,
+      kind: CLASS_KIND_PRIVE_MEMBER,
+      status: CLASS_STATUS_DISABLED,
+      enabled: false,
+      name: "PRIVE_MEMBER",
+      label: "PRIVE",
+    });
 
-	classAccount =
-	  await program.account.eligibilityClass.fetch(eligibilityClass);
+    classAccount =
+      await program.account.eligibilityClass.fetch(eligibilityClass);
 
-	assert.strictEqual(classAccount.status, CLASS_STATUS_DISABLED);
-	assert.strictEqual(classAccount.enabled, false);
+    assert.strictEqual(classAccount.status, CLASS_STATUS_DISABLED);
+    assert.strictEqual(classAccount.enabled, false);
+    assert.strictEqual(classAccount.governanceEligible, true);
 
-	await upsertClass({
-	  registry,
-	  classId: CLASS_ID_PRIVE_MEMBER,
-	  kind: CLASS_KIND_PRIVE_MEMBER,
-	  status: CLASS_STATUS_DEPRECATED,
-	  enabled: false,
-	  name: "PRIVE_MEMBER",
-	  label: "PRIVE",
-	});
+    await upsertClass({
+      registry,
+      classId: CLASS_ID_PRIVE_MEMBER,
+      kind: CLASS_KIND_PRIVE_MEMBER,
+      status: CLASS_STATUS_DEPRECATED,
+      enabled: false,
+      name: "PRIVE_MEMBER",
+      label: "PRIVE",
+    });
 
-	classAccount =
-	  await program.account.eligibilityClass.fetch(eligibilityClass);
+    classAccount =
+      await program.account.eligibilityClass.fetch(eligibilityClass);
 
-	const registryAccount =
-	  await program.account.eligibilityRegistry.fetch(registry);
+    const registryAccount =
+      await program.account.eligibilityRegistry.fetch(registry);
 
-	assert.strictEqual(classAccount.status, CLASS_STATUS_DEPRECATED);
-	assert.strictEqual(classAccount.enabled, false);
-	assert.strictEqual(registryAccount.classCount, 1);
+    assert.strictEqual(classAccount.status, CLASS_STATUS_DEPRECATED);
+    assert.strictEqual(classAccount.enabled, false);
+    assert.strictEqual(classAccount.governanceEligible, true);
+    assert.strictEqual(registryAccount.classCount, 1);
   });
 });

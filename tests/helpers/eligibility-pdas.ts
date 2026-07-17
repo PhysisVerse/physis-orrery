@@ -6,12 +6,12 @@ export function findCanonicalEpochRegistryPda(
   realm: PublicKey,
 ): PublicKey {
   const [pda] = PublicKey.findProgramAddressSync(
-	[
-	  Buffer.from("physis"),
-	  Buffer.from("epoch-registry"),
-	  realm.toBuffer(),
-	],
-	new PublicKey(EPOCH_REGISTRY_PROGRAM_ID),
+    [
+      Buffer.from("physis"),
+      Buffer.from("epoch-registry"),
+      realm.toBuffer(),
+    ],
+    new PublicKey(EPOCH_REGISTRY_PROGRAM_ID),
   );
 
   return pda;
@@ -25,17 +25,17 @@ export function findEligibilityRegistryPda(
   bump: number;
 } {
   const [pda, bump] = PublicKey.findProgramAddressSync(
-	[
-	  Buffer.from("physis"),
-	  Buffer.from("eligibility-registry"),
-	  realm.toBuffer(),
-	],
-	programId,
+    [
+      Buffer.from("physis"),
+      Buffer.from("eligibility-registry"),
+      realm.toBuffer(),
+    ],
+    programId,
   );
 
   return {
-	pda,
-	bump,
+    pda,
+    bump,
   };
 }
 
@@ -51,18 +51,47 @@ export function findEligibilityClassPda(
   classIdBuffer.writeUInt32LE(classId, 0);
 
   const [pda, bump] = PublicKey.findProgramAddressSync(
-	[
-	  Buffer.from("physis"),
-	  Buffer.from("eligibility-class"),
-	  registry.toBuffer(),
-	  classIdBuffer,
-	],
-	programId,
+    [
+      Buffer.from("physis"),
+      Buffer.from("eligibility-class"),
+      registry.toBuffer(),
+      classIdBuffer,
+    ],
+    programId,
   );
 
   return {
-	pda,
-	bump,
+    pda,
+    bump,
+  };
+}
+
+export function findIssuerGrantPda(
+  programId: PublicKey,
+  registry: PublicKey,
+  classId: number,
+  issuer: PublicKey,
+): {
+  pda: PublicKey;
+  bump: number;
+} {
+  const classIdBuffer = Buffer.alloc(4);
+  classIdBuffer.writeUInt32LE(classId, 0);
+
+  const [pda, bump] = PublicKey.findProgramAddressSync(
+    [
+      Buffer.from("physis"),
+      Buffer.from("eligibility-issuer"),
+      registry.toBuffer(),
+      classIdBuffer,
+      issuer.toBuffer(),
+    ],
+    programId,
+  );
+
+  return {
+    pda,
+    bump,
   };
 }
 
@@ -80,19 +109,19 @@ export function findEligibilityRecordPda(
   classIdBuffer.writeUInt32LE(classId, 0);
 
   const [pda, bump] = PublicKey.findProgramAddressSync(
-	[
-	  Buffer.from("physis"),
-	  Buffer.from("eligibility-record"),
-	  registry.toBuffer(),
-	  Buffer.from([subjectKind]),
-	  Buffer.from(subjectKey),
-	  classIdBuffer,
-	],
-	programId,
+    [
+      Buffer.from("physis"),
+      Buffer.from("eligibility-record"),
+      registry.toBuffer(),
+      Buffer.from([subjectKind]),
+      Buffer.from(subjectKey),
+      classIdBuffer,
+    ],
+    programId,
   );
 
   return {
-	pda,
-	bump,
+    pda,
+    bump,
   };
 }

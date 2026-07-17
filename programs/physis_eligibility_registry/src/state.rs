@@ -79,6 +79,51 @@ impl EligibilityClass {
 }
 
 #[account]
+pub struct IssuerGrant {
+    pub version: u8,
+    pub registry: Pubkey,
+    pub eligibility_class: Pubkey,
+    pub class_id: u32,
+    pub issuer: Pubkey,
+    pub allowed_source: u8,
+    pub permissions: u16,
+    pub enabled: bool,
+    pub max_evidence_ttl_seconds: u32,
+    pub valid_from_ts: i64,
+    pub valid_until_ts: i64,
+    pub created_ts: i64,
+    pub created_slot: u64,
+    pub created_solana_epoch: u64,
+    pub updated_ts: i64,
+    pub updated_slot: u64,
+    pub updated_solana_epoch: u64,
+    pub bump: u8,
+    pub reserved: [u8; ISSUER_GRANT_RESERVED_BYTES],
+}
+
+impl IssuerGrant {
+    pub const LEN: usize = 1
+        + 32
+        + 32
+        + 4
+        + 32
+        + 1
+        + 2
+        + 1
+        + 4
+        + 8
+        + 8
+        + 8
+        + 8
+        + 8
+        + 8
+        + 8
+        + 8
+        + 1
+        + ISSUER_GRANT_RESERVED_BYTES;
+}
+
+#[account]
 pub struct EligibilityRecord {
     pub version: u8,
     pub registry: Pubkey,

@@ -92,6 +92,96 @@ export type PhysisEligibilityRegistry = {
       ]
     },
     {
+      "name": "disableIssuerGrant",
+      "discriminator": [
+        2,
+        165,
+        59,
+        216,
+        8,
+        184,
+        44,
+        210
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "signer": true
+        },
+        {
+          "name": "registry",
+          "writable": true
+        },
+        {
+          "name": "eligibilityClass"
+        },
+        {
+          "name": "issuerGrant",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  104,
+                  121,
+                  115,
+                  105,
+                  115
+                ]
+              },
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  108,
+                  105,
+                  103,
+                  105,
+                  98,
+                  105,
+                  108,
+                  105,
+                  116,
+                  121,
+                  45,
+                  105,
+                  115,
+                  115,
+                  117,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "registry"
+              },
+              {
+                "kind": "arg",
+                "path": "classId"
+              },
+              {
+                "kind": "arg",
+                "path": "issuer"
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "classId",
+          "type": "u32"
+        },
+        {
+          "name": "issuer",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
       "name": "initializeRegistry",
       "discriminator": [
         189,
@@ -678,6 +768,125 @@ export type PhysisEligibilityRegistry = {
           "type": "u32"
         }
       ]
+    },
+    {
+      "name": "upsertIssuerGrant",
+      "discriminator": [
+        149,
+        225,
+        99,
+        59,
+        217,
+        47,
+        244,
+        195
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "authority",
+          "signer": true
+        },
+        {
+          "name": "registry",
+          "writable": true
+        },
+        {
+          "name": "eligibilityClass"
+        },
+        {
+          "name": "issuerGrant",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  104,
+                  121,
+                  115,
+                  105,
+                  115
+                ]
+              },
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  108,
+                  105,
+                  103,
+                  105,
+                  98,
+                  105,
+                  108,
+                  105,
+                  116,
+                  121,
+                  45,
+                  105,
+                  115,
+                  115,
+                  117,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "registry"
+              },
+              {
+                "kind": "arg",
+                "path": "classId"
+              },
+              {
+                "kind": "arg",
+                "path": "issuer"
+              }
+            ]
+          }
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "classId",
+          "type": "u32"
+        },
+        {
+          "name": "issuer",
+          "type": "pubkey"
+        },
+        {
+          "name": "allowedSource",
+          "type": "u8"
+        },
+        {
+          "name": "permissions",
+          "type": "u16"
+        },
+        {
+          "name": "maxEvidenceTtlSeconds",
+          "type": "u32"
+        },
+        {
+          "name": "validFromTs",
+          "type": "i64"
+        },
+        {
+          "name": "validUntilTs",
+          "type": "i64"
+        }
+      ]
     }
   ],
   "accounts": [
@@ -718,6 +927,19 @@ export type PhysisEligibilityRegistry = {
         67,
         100,
         172
+      ]
+    },
+    {
+      "name": "issuerGrant",
+      "discriminator": [
+        162,
+        76,
+        225,
+        153,
+        86,
+        26,
+        197,
+        237
       ]
     }
   ],
@@ -838,6 +1060,32 @@ export type PhysisEligibilityRegistry = {
         43,
         6
       ]
+    },
+    {
+      "name": "issuerGrantDisabled",
+      "discriminator": [
+        152,
+        235,
+        2,
+        94,
+        66,
+        200,
+        234,
+        73
+      ]
+    },
+    {
+      "name": "issuerGrantUpserted",
+      "discriminator": [
+        18,
+        77,
+        10,
+        48,
+        123,
+        96,
+        119,
+        87
+      ]
     }
   ],
   "errors": [
@@ -953,43 +1201,113 @@ export type PhysisEligibilityRegistry = {
     },
     {
       "code": 6022,
+      "name": "priveClassMustBeGovernanceEligible",
+      "msg": "PRIVE_MEMBER must remain governance-eligible"
+    },
+    {
+      "code": 6023,
+      "name": "personaClassCannotBeGovernanceEligible",
+      "msg": "PERSONA_VERIFIED cannot independently be governance-eligible"
+    },
+    {
+      "code": 6024,
+      "name": "personaClassCannotBeRewardsEligible",
+      "msg": "PERSONA_VERIFIED cannot independently be rewards-eligible"
+    },
+    {
+      "code": 6025,
       "name": "invalidEpochRegistry",
       "msg": "Epoch registry is not the canonical Program 1 registry for this Realm"
     },
     {
-      "code": 6023,
+      "code": 6026,
       "name": "epochRegistryNotInitialized",
       "msg": "Program 1 Epoch Registry account does not exist or is not initialized"
     },
     {
-      "code": 6024,
+      "code": 6027,
       "name": "invalidEpochRegistryOwner",
       "msg": "Program 1 Epoch Registry has an invalid account owner"
     },
     {
-      "code": 6025,
+      "code": 6028,
       "name": "invalidEpochRegistryDiscriminator",
       "msg": "Program 1 Epoch Registry has an invalid account discriminator"
     },
     {
-      "code": 6026,
+      "code": 6029,
       "name": "invalidEpochRegistryVersion",
       "msg": "Program 1 Epoch Registry uses an unsupported version"
     },
     {
-      "code": 6027,
+      "code": 6030,
       "name": "epochRegistryRealmMismatch",
       "msg": "Program 1 Epoch Registry belongs to a different Realm"
     },
     {
-      "code": 6028,
+      "code": 6031,
       "name": "mathOverflow",
       "msg": "Math overflow"
     },
     {
-      "code": 6029,
+      "code": 6032,
       "name": "eligibilitySourceClassMismatch",
       "msg": "Eligibility source is not permitted for this eligibility class"
+    },
+    {
+      "code": 6033,
+      "name": "invalidIssuer",
+      "msg": "Issuer cannot be the default pubkey"
+    },
+    {
+      "code": 6034,
+      "name": "invalidIssuerGrantVersion",
+      "msg": "Issuer grant uses an unsupported version"
+    },
+    {
+      "code": 6035,
+      "name": "invalidIssuerGrantSource",
+      "msg": "Issuer grant source is not delegatable"
+    },
+    {
+      "code": 6036,
+      "name": "invalidIssuerGrantPermissions",
+      "msg": "Issuer grant permissions are invalid"
+    },
+    {
+      "code": 6037,
+      "name": "invalidIssuerGrantTtl",
+      "msg": "Issuer grant evidence TTL must be greater than zero"
+    },
+    {
+      "code": 6038,
+      "name": "invalidIssuerGrantValidityWindow",
+      "msg": "Issuer grant validity window is invalid"
+    },
+    {
+      "code": 6039,
+      "name": "issuerGrantSourceImmutable",
+      "msg": "Issuer grant source cannot be changed after creation"
+    },
+    {
+      "code": 6040,
+      "name": "issuerGrantAlreadyDisabled",
+      "msg": "Issuer grant is already disabled"
+    },
+    {
+      "code": 6041,
+      "name": "issuerGrantRegistryMismatch",
+      "msg": "Issuer grant does not belong to this registry"
+    },
+    {
+      "code": 6042,
+      "name": "issuerGrantClassMismatch",
+      "msg": "Issuer grant does not belong to this eligibility class"
+    },
+    {
+      "code": 6043,
+      "name": "issuerGrantIssuerMismatch",
+      "msg": "Issuer grant belongs to a different issuer"
     }
   ],
   "types": [
@@ -1659,6 +1977,211 @@ export type PhysisEligibilityRegistry = {
           {
             "name": "authority",
             "type": "pubkey"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          },
+          {
+            "name": "slot",
+            "type": "u64"
+          },
+          {
+            "name": "solanaEpoch",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "issuerGrant",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "version",
+            "type": "u8"
+          },
+          {
+            "name": "registry",
+            "type": "pubkey"
+          },
+          {
+            "name": "eligibilityClass",
+            "type": "pubkey"
+          },
+          {
+            "name": "classId",
+            "type": "u32"
+          },
+          {
+            "name": "issuer",
+            "type": "pubkey"
+          },
+          {
+            "name": "allowedSource",
+            "type": "u8"
+          },
+          {
+            "name": "permissions",
+            "type": "u16"
+          },
+          {
+            "name": "enabled",
+            "type": "bool"
+          },
+          {
+            "name": "maxEvidenceTtlSeconds",
+            "type": "u32"
+          },
+          {
+            "name": "validFromTs",
+            "type": "i64"
+          },
+          {
+            "name": "validUntilTs",
+            "type": "i64"
+          },
+          {
+            "name": "createdTs",
+            "type": "i64"
+          },
+          {
+            "name": "createdSlot",
+            "type": "u64"
+          },
+          {
+            "name": "createdSolanaEpoch",
+            "type": "u64"
+          },
+          {
+            "name": "updatedTs",
+            "type": "i64"
+          },
+          {
+            "name": "updatedSlot",
+            "type": "u64"
+          },
+          {
+            "name": "updatedSolanaEpoch",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "reserved",
+            "type": {
+              "array": [
+                "u8",
+                64
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "issuerGrantDisabled",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "registry",
+            "type": "pubkey"
+          },
+          {
+            "name": "eligibilityClass",
+            "type": "pubkey"
+          },
+          {
+            "name": "issuerGrant",
+            "type": "pubkey"
+          },
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "classId",
+            "type": "u32"
+          },
+          {
+            "name": "issuer",
+            "type": "pubkey"
+          },
+          {
+            "name": "allowedSource",
+            "type": "u8"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          },
+          {
+            "name": "slot",
+            "type": "u64"
+          },
+          {
+            "name": "solanaEpoch",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "issuerGrantUpserted",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "registry",
+            "type": "pubkey"
+          },
+          {
+            "name": "eligibilityClass",
+            "type": "pubkey"
+          },
+          {
+            "name": "issuerGrant",
+            "type": "pubkey"
+          },
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "classId",
+            "type": "u32"
+          },
+          {
+            "name": "issuer",
+            "type": "pubkey"
+          },
+          {
+            "name": "allowedSource",
+            "type": "u8"
+          },
+          {
+            "name": "permissions",
+            "type": "u16"
+          },
+          {
+            "name": "enabled",
+            "type": "bool"
+          },
+          {
+            "name": "maxEvidenceTtlSeconds",
+            "type": "u32"
+          },
+          {
+            "name": "validFromTs",
+            "type": "i64"
+          },
+          {
+            "name": "validUntilTs",
+            "type": "i64"
           },
           {
             "name": "timestamp",

@@ -82,6 +82,27 @@ pub fn process_upsert_eligibility_class(
         EligibilityError::InvalidEpochWindow
     );
 
+    match class_id {
+        CLASS_ID_PRIVE_MEMBER => {
+            require!(
+                governance_eligible,
+                EligibilityError::PriveClassMustBeGovernanceEligible
+            );
+        }
+        CLASS_ID_PERSONA_VERIFIED => {
+            require!(
+                !governance_eligible,
+                EligibilityError::PersonaClassCannotBeGovernanceEligible
+            );
+
+            require!(
+                !rewards_eligible,
+                EligibilityError::PersonaClassCannotBeRewardsEligible
+            );
+        }
+        _ => {}
+    }
+
     let clock = Clock::get()?;
 
     let registry_key = ctx.accounts.registry.key();

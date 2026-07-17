@@ -68,6 +68,15 @@ pub enum EligibilityError {
     #[msg("Eligibility class status and enabled state are inconsistent")]
     InvalidClassState,
 
+    #[msg("PRIVE_MEMBER must remain governance-eligible")]
+    PriveClassMustBeGovernanceEligible,
+
+    #[msg("PERSONA_VERIFIED cannot independently be governance-eligible")]
+    PersonaClassCannotBeGovernanceEligible,
+
+    #[msg("PERSONA_VERIFIED cannot independently be rewards-eligible")]
+    PersonaClassCannotBeRewardsEligible,
+
     #[msg("Epoch registry is not the canonical Program 1 registry for this Realm")]
     InvalidEpochRegistry,
 
@@ -91,4 +100,37 @@ pub enum EligibilityError {
 
     #[msg("Eligibility source is not permitted for this eligibility class")]
     EligibilitySourceClassMismatch,
+
+    #[msg("Issuer cannot be the default pubkey")]
+    InvalidIssuer,
+
+    #[msg("Issuer grant uses an unsupported version")]
+    InvalidIssuerGrantVersion,
+
+    #[msg("Issuer grant source is not delegatable")]
+    InvalidIssuerGrantSource,
+
+    #[msg("Issuer grant permissions are invalid")]
+    InvalidIssuerGrantPermissions,
+
+    #[msg("Issuer grant evidence TTL must be greater than zero")]
+    InvalidIssuerGrantTtl,
+
+    #[msg("Issuer grant validity window is invalid")]
+    InvalidIssuerGrantValidityWindow,
+
+    #[msg("Issuer grant source cannot be changed after creation")]
+    IssuerGrantSourceImmutable,
+
+    #[msg("Issuer grant is already disabled")]
+    IssuerGrantAlreadyDisabled,
+
+    #[msg("Issuer grant does not belong to this registry")]
+    IssuerGrantRegistryMismatch,
+
+    #[msg("Issuer grant does not belong to this eligibility class")]
+    IssuerGrantClassMismatch,
+
+    #[msg("Issuer grant belongs to a different issuer")]
+    IssuerGrantIssuerMismatch,
 }

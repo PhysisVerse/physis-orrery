@@ -1,4 +1,5 @@
 pub mod disable_eligibility_class;
+pub mod disable_issuer_grant;
 pub mod initialize_registry;
 pub mod pause_registry;
 pub mod resume_registry;
@@ -7,8 +8,10 @@ pub mod suspend_eligibility_record;
 pub mod transfer_registry_authority;
 pub mod upsert_eligibility_class;
 pub mod upsert_eligibility_record;
+pub mod upsert_issuer_grant;
 
 pub use disable_eligibility_class::*;
+pub use disable_issuer_grant::*;
 pub use initialize_registry::*;
 pub use pause_registry::*;
 pub use resume_registry::*;
@@ -17,3 +20,4 @@ pub use suspend_eligibility_record::*;
 pub use transfer_registry_authority::*;
 pub use upsert_eligibility_class::*;
 pub use upsert_eligibility_record::*;
+pub use upsert_issuer_grant::*;

@@ -78,6 +78,37 @@ pub mod physis_eligibility_registry {
     }
 
     #[allow(clippy::too_many_arguments)]
+    pub fn upsert_issuer_grant(
+        ctx: Context<UpsertIssuerGrant>,
+        class_id: u32,
+        issuer: Pubkey,
+        allowed_source: u8,
+        permissions: u16,
+        max_evidence_ttl_seconds: u32,
+        valid_from_ts: i64,
+        valid_until_ts: i64,
+    ) -> Result<()> {
+        process_upsert_issuer_grant(
+            ctx,
+            class_id,
+            issuer,
+            allowed_source,
+            permissions,
+            max_evidence_ttl_seconds,
+            valid_from_ts,
+            valid_until_ts,
+        )
+    }
+
+    pub fn disable_issuer_grant(
+        ctx: Context<DisableIssuerGrant>,
+        class_id: u32,
+        issuer: Pubkey,
+    ) -> Result<()> {
+        process_disable_issuer_grant(ctx, class_id, issuer)
+    }
+
+    #[allow(clippy::too_many_arguments)]
     pub fn upsert_eligibility_record(
         ctx: Context<UpsertEligibilityRecord>,
         class_id: u32,
