@@ -319,7 +319,7 @@ T_n=
 30{,}000, & n=1,\\[6pt]
 300{,}000\cdot 3^{n-2}, & n\geq 2.
 \end{cases}
-````
+```
 
 Then the locked-PHY bonus is:
 
