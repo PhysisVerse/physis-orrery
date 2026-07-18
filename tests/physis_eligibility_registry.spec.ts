@@ -61,6 +61,18 @@ describe("physis_eligibility_registry", () => {
 	return Array.from(Buffer.alloc(length));
   }
 
+  function nonZeroMetadataHash(
+	seed = 1,
+  ): number[] {
+	const bytes =
+	  Buffer.alloc(METADATA_HASH_BYTES);
+
+	bytes.writeUInt32LE(seed, 0);
+	bytes[METADATA_HASH_BYTES - 1] = 1;
+
+	return Array.from(bytes);
+  }
+
   function bytesToTrimmedString(bytes: number[]): string {
 	return Buffer.from(bytes).toString("utf8").replace(/\0+$/g, "");
   }
@@ -254,10 +266,10 @@ describe("physis_eligibility_registry", () => {
 	wallet?: PublicKey;
 	status?: number;
 	source?: number;
-	issuer?: PublicKey;
 	metadataHash?: number[];
 	validFromEpochId?: number;
 	validUntilEpochId?: number;
+	evidenceExpiresAt?: number;
   }) {
 	const wallet = params.wallet ?? Keypair.generate().publicKey;
 	const subjectKind = params.subjectKind ?? SUBJECT_KIND_WALLET;
@@ -273,17 +285,19 @@ describe("physis_eligibility_registry", () => {
 	);
 
 	const builder = program.methods
-	  .upsertEligibilityRecord(
+	  .upsertEligibilityRecordByAuthority(
 		classId,
 		subjectKind,
 		subjectKey,
 		wallet,
 		params.status ?? RECORD_STATUS_ACTIVE,
 		params.source ?? ELIGIBILITY_SOURCE_PRIVE_COLLECTION_VERIFIED,
-		params.issuer ?? provider.wallet.publicKey,
-		params.metadataHash ?? zeroBytes(METADATA_HASH_BYTES),
+		params.metadataHash ?? nonZeroMetadataHash(),
 		params.validFromEpochId ?? 0,
 		params.validUntilEpochId ?? 0,
+		new anchor.BN(
+		  params.evidenceExpiresAt ?? 0,
+		),
 	  )
 	  .accountsStrict({
 		payer: provider.wallet.publicKey,
@@ -676,7 +690,6 @@ describe("physis_eligibility_registry", () => {
 		subjectKey: pubkeyBytes(wallet),
 		status: RECORD_STATUS_ACTIVE,
 		source: ELIGIBILITY_SOURCE_PRIVE_COLLECTION_VERIFIED,
-		issuer: provider.wallet.publicKey,
 	  });
 
 	const registryAccount =
@@ -771,7 +784,7 @@ describe("physis_eligibility_registry", () => {
 	  eligibilityClass,
 	  wallet,
 	  subjectKey: pubkeyBytes(wallet),
-	  status: RECORD_STATUS_PENDING,
+	  status: RECORD_STATUS_ACTIVE,
 	  source: ELIGIBILITY_SOURCE_DAO_APPROVED,
 	  metadataHash: fixedBytes("record-update", METADATA_HASH_BYTES),
 	  validFromEpochId: 202602,
@@ -785,7 +798,7 @@ describe("physis_eligibility_registry", () => {
 	  await program.account.eligibilityRecord.fetch(eligibilityRecord);
 
 	assert.strictEqual(registryAccount.recordCount.toNumber(), 1);
-	assert.strictEqual(recordAccount.status, RECORD_STATUS_PENDING);
+	assert.strictEqual(recordAccount.status, RECORD_STATUS_ACTIVE);
 	assert.strictEqual(
 	  recordAccount.source,
 	  ELIGIBILITY_SOURCE_DAO_APPROVED,

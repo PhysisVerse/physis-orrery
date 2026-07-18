@@ -337,17 +337,17 @@ export async function upsertPriveDaoOverride(
     );
 
   await program.methods
-    .upsertEligibilityRecord(
+    .upsertEligibilityRecordByAuthority(
       CLASS_ID_PRIVE_MEMBER,
       SUBJECT_KIND_WALLET,
       subjectKey,
       params.wallet,
       RECORD_STATUS_ACTIVE,
       ELIGIBILITY_SOURCE_DAO_GOVERNANCE_OVERRIDE,
-      provider.wallet.publicKey,
-      zeroBytes(METADATA_HASH_BYTES),
+      metadataHash(9_001),
       0,
       0,
+      new anchor.BN(0),
     )
     .accountsStrict({
       payer: provider.wallet.publicKey,

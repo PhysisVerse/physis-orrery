@@ -32,8 +32,16 @@ function pubkeyBytes(pubkey: PublicKey): number[] {
   return Array.from(pubkey.toBytes());
 }
 
-function zeroBytes(length: number): number[] {
-  return Array.from(Buffer.alloc(length));
+function metadataHash(
+  seed: number,
+): number[] {
+  const bytes =
+    Buffer.alloc(METADATA_HASH_BYTES);
+
+  bytes.writeUInt32LE(seed, 0);
+  bytes[METADATA_HASH_BYTES - 1] = 1;
+
+  return Array.from(bytes);
 }
 
 function bytesEqual(
@@ -235,17 +243,17 @@ async function main(): Promise<void> {
 
   const createSignature =
 	await program.methods
-	  .upsertEligibilityRecord(
+	  .upsertEligibilityRecordByAuthority(
 		CLASS_ID_PRIVE_MEMBER,
 		SUBJECT_KIND_WALLET,
 		subjectKey,
 		disposableWallet,
 		RECORD_STATUS_ACTIVE,
 		ELIGIBILITY_SOURCE_PRIVE_COLLECTION_VERIFIED,
-		provider.wallet.publicKey,
-		zeroBytes(METADATA_HASH_BYTES),
+		metadataHash(1),
 		0,
 		0,
+		new anchor.BN(0),
 	  )
 	  .accountsStrict({
 		payer: provider.wallet.publicKey,
@@ -392,17 +400,17 @@ async function main(): Promise<void> {
 
   const reactivateSignature =
 	await program.methods
-	  .upsertEligibilityRecord(
+	  .upsertEligibilityRecordByAuthority(
 		CLASS_ID_PRIVE_MEMBER,
 		SUBJECT_KIND_WALLET,
 		subjectKey,
 		disposableWallet,
 		RECORD_STATUS_ACTIVE,
 		ELIGIBILITY_SOURCE_PRIVE_COLLECTION_VERIFIED,
-		provider.wallet.publicKey,
-		zeroBytes(METADATA_HASH_BYTES),
+		metadataHash(2),
 		0,
 		0,
+		new anchor.BN(0),
 	  )
 	  .accountsStrict({
 		payer: provider.wallet.publicKey,

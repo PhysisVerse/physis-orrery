@@ -52,10 +52,6 @@ describe("physis_eligibility_registry upsert status policy", () => {
 	return Array.from(bytes);
   }
 
-  function zeroBytes(length: number): number[] {
-	return Array.from(Buffer.alloc(length));
-  }
-
   function pubkeyBytes(pubkey: PublicKey): number[] {
 	return Array.from(pubkey.toBytes());
   }
@@ -175,17 +171,17 @@ describe("physis_eligibility_registry upsert status policy", () => {
 	  );
 
 	await program.methods
-	  .upsertEligibilityRecord(
+	  .upsertEligibilityRecordByAuthority(
 		CLASS_ID_PRIVE_MEMBER,
 		SUBJECT_KIND_WALLET,
 		subjectKey,
 		wallet,
 		status,
 		ELIGIBILITY_SOURCE_PRIVE_COLLECTION_VERIFIED,
-		provider.wallet.publicKey,
-		zeroBytes(METADATA_HASH_BYTES),
+		fixedBytes("root-evidence", METADATA_HASH_BYTES),
 		0,
 		0,
+		new anchor.BN(0),
 	  )
 	  .accountsStrict({
 		payer: provider.wallet.publicKey,

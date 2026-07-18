@@ -55,10 +55,6 @@ describe("physis_eligibility_registry hardening", () => {
 	return Array.from(bytes);
   }
 
-  function zeroBytes(length: number): number[] {
-	return Array.from(Buffer.alloc(length));
-  }
-
   function pubkeyBytes(pubkey: PublicKey): number[] {
 	return Array.from(pubkey.toBytes());
   }
@@ -200,17 +196,17 @@ describe("physis_eligibility_registry hardening", () => {
 	  params.eligibilityRecordOverride ?? expectedEligibilityRecord;
 
 	await program.methods
-	  .upsertEligibilityRecord(
+	  .upsertEligibilityRecordByAuthority(
 		params.classId,
 		SUBJECT_KIND_WALLET,
 		subjectKey,
 		params.wallet,
 		RECORD_STATUS_ACTIVE,
 		params.source,
-		provider.wallet.publicKey,
-		zeroBytes(METADATA_HASH_BYTES),
+		fixedBytes("root-evidence", METADATA_HASH_BYTES),
 		0,
 		0,
+		new anchor.BN(0),
 	  )
 	  .accountsStrict({
 		payer: provider.wallet.publicKey,
