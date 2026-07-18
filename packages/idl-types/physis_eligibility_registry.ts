@@ -182,6 +182,247 @@ export type PhysisEligibilityRegistry = {
       ]
     },
     {
+      "name": "expireEligibilityRecord",
+      "discriminator": [
+        29,
+        185,
+        50,
+        21,
+        68,
+        45,
+        27,
+        0
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "signer": true
+        },
+        {
+          "name": "registry",
+          "writable": true
+        },
+        {
+          "name": "eligibilityClass",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  104,
+                  121,
+                  115,
+                  105,
+                  115
+                ]
+              },
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  108,
+                  105,
+                  103,
+                  105,
+                  98,
+                  105,
+                  108,
+                  105,
+                  116,
+                  121,
+                  45,
+                  99,
+                  108,
+                  97,
+                  115,
+                  115
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "registry"
+              },
+              {
+                "kind": "arg",
+                "path": "classId"
+              }
+            ]
+          }
+        },
+        {
+          "name": "eligibilityRecord",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "classId",
+          "type": "u32"
+        },
+        {
+          "name": "subjectKind",
+          "type": "u8"
+        },
+        {
+          "name": "subjectKey",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "expireEligibilityRecordByIssuer",
+      "discriminator": [
+        214,
+        179,
+        209,
+        106,
+        35,
+        92,
+        108,
+        18
+      ],
+      "accounts": [
+        {
+          "name": "issuer",
+          "signer": true
+        },
+        {
+          "name": "registry",
+          "writable": true
+        },
+        {
+          "name": "eligibilityClass",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  104,
+                  121,
+                  115,
+                  105,
+                  115
+                ]
+              },
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  108,
+                  105,
+                  103,
+                  105,
+                  98,
+                  105,
+                  108,
+                  105,
+                  116,
+                  121,
+                  45,
+                  99,
+                  108,
+                  97,
+                  115,
+                  115
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "registry"
+              },
+              {
+                "kind": "arg",
+                "path": "classId"
+              }
+            ]
+          }
+        },
+        {
+          "name": "issuerGrant",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  104,
+                  121,
+                  115,
+                  105,
+                  115
+                ]
+              },
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  108,
+                  105,
+                  103,
+                  105,
+                  98,
+                  105,
+                  108,
+                  105,
+                  116,
+                  121,
+                  45,
+                  105,
+                  115,
+                  115,
+                  117,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "registry"
+              },
+              {
+                "kind": "arg",
+                "path": "classId"
+              },
+              {
+                "kind": "account",
+                "path": "issuer"
+              }
+            ]
+          }
+        },
+        {
+          "name": "eligibilityRecord",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "classId",
+          "type": "u32"
+        },
+        {
+          "name": "subjectKind",
+          "type": "u8"
+        },
+        {
+          "name": "subjectKey",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        }
+      ]
+    },
+    {
       "name": "initializeRegistry",
       "discriminator": [
         189,
@@ -479,6 +720,153 @@ export type PhysisEligibilityRegistry = {
               {
                 "kind": "arg",
                 "path": "classId"
+              }
+            ]
+          }
+        },
+        {
+          "name": "eligibilityRecord",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "classId",
+          "type": "u32"
+        },
+        {
+          "name": "subjectKind",
+          "type": "u8"
+        },
+        {
+          "name": "subjectKey",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "suspendEligibilityRecordByIssuer",
+      "discriminator": [
+        228,
+        0,
+        107,
+        105,
+        216,
+        137,
+        236,
+        220
+      ],
+      "accounts": [
+        {
+          "name": "issuer",
+          "signer": true
+        },
+        {
+          "name": "registry",
+          "writable": true
+        },
+        {
+          "name": "eligibilityClass",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  104,
+                  121,
+                  115,
+                  105,
+                  115
+                ]
+              },
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  108,
+                  105,
+                  103,
+                  105,
+                  98,
+                  105,
+                  108,
+                  105,
+                  116,
+                  121,
+                  45,
+                  99,
+                  108,
+                  97,
+                  115,
+                  115
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "registry"
+              },
+              {
+                "kind": "arg",
+                "path": "classId"
+              }
+            ]
+          }
+        },
+        {
+          "name": "issuerGrant",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  104,
+                  121,
+                  115,
+                  105,
+                  115
+                ]
+              },
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  108,
+                  105,
+                  103,
+                  105,
+                  98,
+                  105,
+                  108,
+                  105,
+                  116,
+                  121,
+                  45,
+                  105,
+                  115,
+                  115,
+                  117,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "registry"
+              },
+              {
+                "kind": "arg",
+                "path": "classId"
+              },
+              {
+                "kind": "account",
+                "path": "issuer"
               }
             ]
           }
@@ -1202,6 +1590,19 @@ export type PhysisEligibilityRegistry = {
       ]
     },
     {
+      "name": "eligibilityRecordExpired",
+      "discriminator": [
+        218,
+        162,
+        168,
+        74,
+        163,
+        16,
+        139,
+        186
+      ]
+    },
+    {
       "name": "eligibilityRecordRevoked",
       "discriminator": [
         69,
@@ -1604,6 +2005,21 @@ export type PhysisEligibilityRegistry = {
       "code": 6056,
       "name": "rootRecordTransitionNotAllowed",
       "msg": "Root-authority record transition is not permitted"
+    },
+    {
+      "code": 6057,
+      "name": "eligibilityRecordNotExpirable",
+      "msg": "Eligibility record cannot be explicitly expired from its current status"
+    },
+    {
+      "code": 6058,
+      "name": "eligibilityRecordAlreadyExpired",
+      "msg": "Eligibility record is already expired"
+    },
+    {
+      "code": 6059,
+      "name": "evidenceNotYetExpired",
+      "msg": "Eligibility evidence has not reached its expiry timestamp"
     }
   ],
   "types": [
@@ -1918,6 +2334,71 @@ export type PhysisEligibilityRegistry = {
       }
     },
     {
+      "name": "eligibilityRecordExpired",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "registry",
+            "type": "pubkey"
+          },
+          {
+            "name": "eligibilityClass",
+            "type": "pubkey"
+          },
+          {
+            "name": "eligibilityRecord",
+            "type": "pubkey"
+          },
+          {
+            "name": "classId",
+            "type": "u32"
+          },
+          {
+            "name": "subjectKind",
+            "type": "u8"
+          },
+          {
+            "name": "subjectKey",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "actor",
+            "type": "pubkey"
+          },
+          {
+            "name": "authKind",
+            "type": "u8"
+          },
+          {
+            "name": "source",
+            "type": "u8"
+          },
+          {
+            "name": "evidenceExpiresAt",
+            "type": "i64"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          },
+          {
+            "name": "slot",
+            "type": "u64"
+          },
+          {
+            "name": "solanaEpoch",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
       "name": "eligibilityRecordRevoked",
       "type": {
         "kind": "struct",
@@ -1950,6 +2431,18 @@ export type PhysisEligibilityRegistry = {
                 32
               ]
             }
+          },
+          {
+            "name": "actor",
+            "type": "pubkey"
+          },
+          {
+            "name": "authKind",
+            "type": "u8"
+          },
+          {
+            "name": "source",
+            "type": "u8"
           },
           {
             "name": "timestamp",
@@ -1999,6 +2492,18 @@ export type PhysisEligibilityRegistry = {
                 32
               ]
             }
+          },
+          {
+            "name": "actor",
+            "type": "pubkey"
+          },
+          {
+            "name": "authKind",
+            "type": "u8"
+          },
+          {
+            "name": "source",
+            "type": "u8"
           },
           {
             "name": "timestamp",

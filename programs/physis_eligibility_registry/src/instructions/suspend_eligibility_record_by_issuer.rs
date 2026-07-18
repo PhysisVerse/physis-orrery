@@ -3,7 +3,7 @@ use anchor_lang::prelude::*;
 use crate::constants::*;
 use crate::errors::EligibilityError;
 use crate::events::EligibilityRecordSuspended;
-use crate::state::{EligibilityClass, EligibilityRecord, EligibilityRegistry};
+use crate::state::{EligibilityClass, EligibilityRecord, EligibilityRegistry, IssuerGrant};
 use crate::utils::subject::validate_subject;
 
 #[derive(Accounts)]
@@ -12,15 +12,13 @@ use crate::utils::subject::validate_subject;
     subject_kind: u8,
     subject_key: [u8; SUBJECT_KEY_BYTES]
 )]
-pub struct SuspendEligibilityRecord<'info> {
-    pub authority: Signer<'info>,
+pub struct SuspendEligibilityRecordByIssuer<'info> {
+    pub issuer: Signer<'info>,
 
     #[account(
         mut,
         constraint = !registry.paused
-            @ EligibilityError::RegistryPaused,
-        constraint = registry.authority == authority.key()
-            @ EligibilityError::InvalidAuthority
+            @ EligibilityError::RegistryPaused
     )]
     pub registry: Box<Account<'info, EligibilityRegistry>>,
 
@@ -38,6 +36,28 @@ pub struct SuspendEligibilityRecord<'info> {
             @ EligibilityError::InvalidClassId
     )]
     pub eligibility_class: Box<Account<'info, EligibilityClass>>,
+
+    #[account(
+        seeds = [
+            SEED_PREFIX,
+            SEED_ISSUER_GRANT,
+            registry.key().as_ref(),
+            class_id.to_le_bytes().as_ref(),
+            issuer.key().as_ref()
+        ],
+        bump = issuer_grant.bump,
+        constraint = issuer_grant.version == ISSUER_GRANT_VERSION
+            @ EligibilityError::InvalidIssuerGrantVersion,
+        constraint = issuer_grant.registry == registry.key()
+            @ EligibilityError::IssuerGrantRegistryMismatch,
+        constraint = issuer_grant.eligibility_class == eligibility_class.key()
+            @ EligibilityError::IssuerGrantClassMismatch,
+        constraint = issuer_grant.class_id == class_id
+            @ EligibilityError::InvalidClassId,
+        constraint = issuer_grant.issuer == issuer.key()
+            @ EligibilityError::IssuerGrantIssuerMismatch
+    )]
+    pub issuer_grant: Box<Account<'info, IssuerGrant>>,
 
     #[account(
         mut,
@@ -63,39 +83,70 @@ pub struct SuspendEligibilityRecord<'info> {
     pub eligibility_record: Box<Account<'info, EligibilityRecord>>,
 }
 
-pub fn process_suspend_eligibility_record(
-    ctx: Context<SuspendEligibilityRecord>,
+pub fn process_suspend_eligibility_record_by_issuer(
+    ctx: Context<SuspendEligibilityRecordByIssuer>,
     class_id: u32,
     subject_kind: u8,
     subject_key: [u8; SUBJECT_KEY_BYTES],
 ) -> Result<()> {
     require!(class_id != 0, EligibilityError::InvalidClassId);
-
     validate_subject(subject_kind, &subject_key)?;
 
+    let clock = Clock::get()?;
+    let now = clock.unix_timestamp;
+    let issuer_grant = &ctx.accounts.issuer_grant;
+
+    require!(issuer_grant.enabled, EligibilityError::IssuerGrantDisabled);
+    require!(
+        now >= issuer_grant.valid_from_ts,
+        EligibilityError::IssuerGrantNotYetValid
+    );
+    require!(
+        issuer_grant.valid_until_ts == 0 || now < issuer_grant.valid_until_ts,
+        EligibilityError::IssuerGrantExpired
+    );
+    require!(
+        has_issuer_permission(issuer_grant.permissions, ISSUER_PERMISSION_SUSPEND),
+        EligibilityError::IssuerPermissionDenied
+    );
+
+    let eligibility_record = &ctx.accounts.eligibility_record;
+
+    require!(
+        eligibility_record.version == ELIGIBILITY_RECORD_VERSION,
+        EligibilityError::InvalidEligibilityRecordVersion
+    );
+    require!(
+        eligibility_record.source != ELIGIBILITY_SOURCE_DAO_GOVERNANCE_OVERRIDE,
+        EligibilityError::DelegatedCannotOverwriteDaoOverride
+    );
+    require!(
+        eligibility_record.source == issuer_grant.allowed_source,
+        EligibilityError::DelegatedRecordSourceMismatch
+    );
     require!(
         matches!(
-            ctx.accounts.eligibility_record.status,
+            eligibility_record.status,
             RECORD_STATUS_PENDING | RECORD_STATUS_ACTIVE
         ),
         EligibilityError::EligibilityRecordNotSuspendable
     );
 
-    let clock = Clock::get()?;
-
     let registry_key = ctx.accounts.registry.key();
     let eligibility_class_key = ctx.accounts.eligibility_class.key();
     let eligibility_record_key = ctx.accounts.eligibility_record.key();
+    let issuer_key = ctx.accounts.issuer.key();
+    let source = eligibility_record.source;
 
-    let registry = &mut *ctx.accounts.registry;
-    let eligibility_record = &mut *ctx.accounts.eligibility_record;
+    let registry = &mut ctx.accounts.registry;
+    let eligibility_record = &mut ctx.accounts.eligibility_record;
 
     eligibility_record.status = RECORD_STATUS_SUSPENDED;
-    eligibility_record.updated_ts = clock.unix_timestamp;
+    eligibility_record.updated_ts = now;
     eligibility_record.updated_slot = clock.slot;
     eligibility_record.updated_solana_epoch = clock.epoch;
 
-    registry.updated_ts = clock.unix_timestamp;
+    registry.updated_ts = now;
     registry.updated_slot = clock.slot;
     registry.updated_solana_epoch = clock.epoch;
 
@@ -106,10 +157,10 @@ pub fn process_suspend_eligibility_record(
         class_id,
         subject_kind,
         subject_key,
-        actor: ctx.accounts.authority.key(),
-        auth_kind: AUTH_KIND_ROOT,
-        source: eligibility_record.source,
-        timestamp: clock.unix_timestamp,
+        actor: issuer_key,
+        auth_kind: AUTH_KIND_DELEGATED_ISSUER,
+        source,
+        timestamp: now,
         slot: clock.slot,
         solana_epoch: clock.epoch,
     });

@@ -172,4 +172,13 @@ pub enum EligibilityError {
 
     #[msg("Root-authority record transition is not permitted")]
     RootRecordTransitionNotAllowed,
+
+    #[msg("Eligibility record cannot be explicitly expired from its current status")]
+    EligibilityRecordNotExpirable,
+
+    #[msg("Eligibility record is already expired")]
+    EligibilityRecordAlreadyExpired,
+
+    #[msg("Eligibility evidence has not reached its expiry timestamp")]
+    EvidenceNotYetExpired,
 }

@@ -202,6 +202,33 @@ pub mod physis_eligibility_registry {
         process_suspend_eligibility_record(ctx, class_id, subject_kind, subject_key)
     }
 
+    pub fn suspend_eligibility_record_by_issuer(
+        ctx: Context<SuspendEligibilityRecordByIssuer>,
+        class_id: u32,
+        subject_kind: u8,
+        subject_key: [u8; constants::SUBJECT_KEY_BYTES],
+    ) -> Result<()> {
+        process_suspend_eligibility_record_by_issuer(ctx, class_id, subject_kind, subject_key)
+    }
+
+    pub fn expire_eligibility_record(
+        ctx: Context<ExpireEligibilityRecord>,
+        class_id: u32,
+        subject_kind: u8,
+        subject_key: [u8; constants::SUBJECT_KEY_BYTES],
+    ) -> Result<()> {
+        process_expire_eligibility_record(ctx, class_id, subject_kind, subject_key)
+    }
+
+    pub fn expire_eligibility_record_by_issuer(
+        ctx: Context<ExpireEligibilityRecordByIssuer>,
+        class_id: u32,
+        subject_kind: u8,
+        subject_key: [u8; constants::SUBJECT_KEY_BYTES],
+    ) -> Result<()> {
+        process_expire_eligibility_record_by_issuer(ctx, class_id, subject_kind, subject_key)
+    }
+
     pub fn revoke_eligibility_record(
         ctx: Context<RevokeEligibilityRecord>,
         class_id: u32,
