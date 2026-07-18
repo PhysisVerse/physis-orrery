@@ -19,6 +19,10 @@ import {
 } from "../shared/eligibility.ts";
 
 import {
+  loadRestrictedKeypairFile,
+} from "../shared/keypair.ts";
+
+import {
   parsePriveCollections,
   verifyPriveOwnership,
 } from "../shared/prive-ownership.ts";
@@ -34,6 +38,13 @@ import {
 const SUBJECT_KIND_WALLET = 1;
 const VALID_FROM_EPOCH_ID = 0;
 const VALID_UNTIL_EPOCH_ID = 0;
+
+const ISSUER_GRANT_VERSION = 1;
+const ISSUER_PERMISSION_CREATE = 1;
+const ISSUER_PERMISSION_REFRESH = 1 << 1;
+const ISSUER_PERMISSION_ACTIVATE_PENDING = 1 << 2;
+
+const DEFAULT_EVIDENCE_TTL_SECONDS = 86_400;
 
 interface WalletSelection {
   wallet: string;
@@ -66,6 +77,65 @@ function requireEnvironmentVariable(
   }
 
   return value;
+}
+
+function optionalPositiveInteger(
+  name: string,
+  fallback: number,
+): number {
+  const raw =
+	process.env[name]?.trim();
+
+  if (!raw) {
+	return fallback;
+  }
+
+  const value = Number(raw);
+
+  requireCondition(
+	Number.isSafeInteger(value) &&
+	  value > 0,
+	`${name} must be a positive safe integer`,
+  );
+
+  return value;
+}
+
+async function currentChainTimestamp(
+  connection: anchor.web3.Connection,
+): Promise<anchor.BN> {
+  const slot =
+	await connection.getSlot("confirmed");
+
+  const blockTime =
+	await connection.getBlockTime(slot);
+
+  requireCondition(
+	blockTime !== null,
+	`Block time is unavailable for slot ${slot}`,
+  );
+
+  return new anchor.BN(blockTime);
+}
+
+function requiredIssuerPermission(
+  action: string,
+): number {
+  switch (action) {
+	case "create-active":
+	  return ISSUER_PERMISSION_CREATE;
+
+	case "activate-pending":
+	  return ISSUER_PERMISSION_ACTIVATE_PENDING;
+
+	case "refresh-evidence":
+	  return ISSUER_PERMISSION_REFRESH;
+
+	default:
+	  throw new Error(
+		`Unsupported mutating PRIVÉ sync action: ${action}`,
+	  );
+  }
 }
 
 function resolveWalletSelection(): WalletSelection {
@@ -204,6 +274,36 @@ function findEligibilityRecordPda(
   return record;
 }
 
+function findIssuerGrantPda(
+  programId: PublicKey,
+  registry: PublicKey,
+  issuer: PublicKey,
+): PublicKey {
+  const classIdBytes =
+	Buffer.alloc(4);
+
+  classIdBytes.writeUInt32LE(
+	CLASS_ID_PRIVE_MEMBER,
+	0,
+  );
+
+  const [issuerGrant] =
+	PublicKey.findProgramAddressSync(
+	  [
+		Buffer.from("physis"),
+		Buffer.from(
+		  "eligibility-issuer",
+		),
+		registry.toBuffer(),
+		classIdBytes,
+		issuer.toBuffer(),
+	  ],
+	  programId,
+	);
+
+  return issuerGrant;
+}
+
 async function main(): Promise<void> {
   const selection =
 	resolveWalletSelection();
@@ -211,6 +311,20 @@ async function main(): Promise<void> {
   const heliusMainnetRpc =
 	requireEnvironmentVariable(
 	  "HELIUS_MAINNET_RPC",
+	);
+
+  const issuer =
+	loadRestrictedKeypairFile(
+	  requireEnvironmentVariable(
+		"PRIVE_ISSUER_KEYPAIR",
+	  ),
+	  "PRIVÉ issuer keypair",
+	);
+
+  const requestedEvidenceTtlSeconds =
+	optionalPositiveInteger(
+	  "PRIVE_EVIDENCE_TTL_SECONDS",
+	  DEFAULT_EVIDENCE_TTL_SECONDS,
 	);
 
   const collections =
@@ -270,6 +384,13 @@ async function main(): Promise<void> {
 	  CLASS_ID_PRIVE_MEMBER,
 	);
 
+  const issuerGrant =
+	findIssuerGrantPda(
+	  program.programId,
+	  registry,
+	  issuer.publicKey,
+	);
+
   await requireOwnedAccount(
 	provider.connection,
 	registry,
@@ -284,6 +405,13 @@ async function main(): Promise<void> {
 	"PRIVE_MEMBER eligibility class",
   );
 
+  await requireOwnedAccount(
+	provider.connection,
+	issuerGrant,
+	program.programId,
+	"PRIVÉ issuer grant",
+  );
+
   const registryBefore =
 	await program.account
 	  .eligibilityRegistry
@@ -294,6 +422,11 @@ async function main(): Promise<void> {
 	  .eligibilityClass
 	  .fetch(eligibilityClass);
 
+  const issuerGrantAccount =
+	await program.account
+	  .issuerGrant
+	  .fetch(issuerGrant);
+
   requireCondition(
 	registryBefore.realm.equals(
 	  config.realm,
@@ -302,19 +435,96 @@ async function main(): Promise<void> {
   );
 
   requireCondition(
-	registryBefore.authority.equals(
-	  provider.wallet.publicKey,
-	),
-	[
-	  "Connected wallet is not the Program 2 registry authority.",
-	  `Expected: ${registryBefore.authority.toBase58()}`,
-	  `Actual:   ${provider.wallet.publicKey.toBase58()}`,
-	].join("\n"),
+	!registryBefore.paused,
+	"Eligibility registry is paused",
   );
 
   requireCondition(
-	!registryBefore.paused,
-	"Eligibility registry is paused",
+	issuerGrantAccount.version ===
+	  ISSUER_GRANT_VERSION,
+	"PRIVÉ issuer grant version mismatch",
+  );
+
+  requireCondition(
+	issuerGrantAccount.registry.equals(
+	  registry,
+	),
+	"PRIVÉ issuer grant registry mismatch",
+  );
+
+  requireCondition(
+	issuerGrantAccount
+	  .eligibilityClass
+	  .equals(eligibilityClass),
+	"PRIVÉ issuer grant class mismatch",
+  );
+
+  requireCondition(
+	issuerGrantAccount.classId ===
+	  CLASS_ID_PRIVE_MEMBER,
+	"PRIVÉ issuer grant class ID mismatch",
+  );
+
+  requireCondition(
+	issuerGrantAccount.issuer.equals(
+	  issuer.publicKey,
+	),
+	"PRIVÉ issuer grant signer mismatch",
+  );
+
+  requireCondition(
+	issuerGrantAccount.allowedSource ===
+	  SOURCE_PRIVE_COLLECTION_VERIFIED,
+	"PRIVÉ issuer grant source mismatch",
+  );
+
+  requireCondition(
+	issuerGrantAccount.enabled,
+	"PRIVÉ issuer grant is disabled",
+  );
+
+  const chainTimestamp =
+	await currentChainTimestamp(
+	  provider.connection,
+	);
+
+  requireCondition(
+	issuerGrantAccount.validFromTs.lte(
+	  chainTimestamp,
+	),
+	"PRIVÉ issuer grant is not yet valid",
+  );
+
+  requireCondition(
+	issuerGrantAccount.validUntilTs.isZero() ||
+	  chainTimestamp.lt(
+		issuerGrantAccount.validUntilTs,
+	  ),
+	"PRIVÉ issuer grant has expired",
+  );
+
+  const maxEvidenceTtlSeconds =
+	Number(
+	  issuerGrantAccount
+		.maxEvidenceTtlSeconds,
+	);
+
+  requireCondition(
+	Number.isSafeInteger(
+	  maxEvidenceTtlSeconds,
+	) &&
+	  maxEvidenceTtlSeconds > 0,
+	"PRIVÉ issuer grant has an invalid maximum evidence TTL",
+  );
+
+  requireCondition(
+	requestedEvidenceTtlSeconds <=
+	  maxEvidenceTtlSeconds,
+	[
+	  "Requested PRIVÉ evidence TTL exceeds the issuer grant maximum.",
+	  `Requested: ${requestedEvidenceTtlSeconds}`,
+	  `Maximum:   ${maxEvidenceTtlSeconds}`,
+	].join("\n"),
   );
 
   requireCondition(
@@ -389,8 +599,13 @@ async function main(): Promise<void> {
 	registry: registry.toBase58(),
 	eligibilityClass:
 	  eligibilityClass.toBase58(),
-	authority:
+	feePayer:
 	  provider.wallet.publicKey.toBase58(),
+	issuer:
+	  issuer.publicKey.toBase58(),
+	issuerGrant:
+	  issuerGrant.toBase58(),
+	requestedEvidenceTtlSeconds,
 	wallet: selection.wallet,
 	walletSource: selection.source,
 	expectedEligible:
@@ -607,31 +822,75 @@ async function main(): Promise<void> {
 	"Mutation requires a metadata evidence hash",
   );
 
+  const requiredPermission =
+	requiredIssuerPermission(
+	  decision.action,
+	);
+
+  const configuredPermissions =
+	Number(issuerGrantAccount.permissions);
+
+  requireCondition(
+	Number.isSafeInteger(
+	  configuredPermissions,
+	),
+	"PRIVÉ issuer grant permissions are invalid",
+  );
+
+  requireCondition(
+	(
+	  configuredPermissions &
+	  requiredPermission
+	) === requiredPermission,
+	[
+	  "PRIVÉ issuer grant lacks the permission required by the sync decision.",
+	  `Action:     ${decision.action}`,
+	  `Required:   ${requiredPermission}`,
+	  `Configured: ${configuredPermissions}`,
+	].join("\n"),
+  );
+
+  const evidenceExpiresAt =
+	chainTimestamp.add(
+	  new anchor.BN(
+		requestedEvidenceTtlSeconds,
+	  ),
+	);
+
+  requireCondition(
+	issuerGrantAccount.validUntilTs.isZero() ||
+	  evidenceExpiresAt.lte(
+		issuerGrantAccount.validUntilTs,
+	  ),
+	"PRIVÉ evidence expiry exceeds the issuer grant validity window",
+  );
+
   const signature =
 	await program.methods
-	  .upsertEligibilityRecord(
+	  .upsertEligibilityRecordByIssuer(
 		CLASS_ID_PRIVE_MEMBER,
 		SUBJECT_KIND_WALLET,
 		subjectKey,
 		subjectWallet,
 		RECORD_STATUS_ACTIVE,
-		SOURCE_PRIVE_COLLECTION_VERIFIED,
-		provider.wallet.publicKey,
 		expectedMetadataHash,
 		VALID_FROM_EPOCH_ID,
 		VALID_UNTIL_EPOCH_ID,
+		evidenceExpiresAt,
 	  )
 	  .accountsStrict({
 		payer:
 		  provider.wallet.publicKey,
-		authority:
-		  provider.wallet.publicKey,
+		issuer:
+		  issuer.publicKey,
 		registry,
 		eligibilityClass,
+		issuerGrant,
 		eligibilityRecord,
 		systemProgram:
 		  SystemProgram.programId,
 	  })
+	  .signers([issuer])
 	  .rpc();
 
   const finalRecord =
@@ -679,9 +938,16 @@ async function main(): Promise<void> {
 
   requireCondition(
 	finalRecord.issuer.equals(
-	  provider.wallet.publicKey,
+	  issuer.publicKey,
 	),
 	"Final record issuer mismatch",
+  );
+
+  requireCondition(
+	finalRecord.evidenceExpiresAt.eq(
+	  evidenceExpiresAt,
+	),
+	"Final record evidence expiry mismatch",
   );
 
   requireCondition(
